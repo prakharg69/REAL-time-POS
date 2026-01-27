@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
       default: "google"
     },
 
-    // 💳 SUBSCRIPTION
+  
     subscriptionPlan: {
       type: String,
       enum: ["free", "pro"],
