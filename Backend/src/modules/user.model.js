@@ -98,7 +98,7 @@ const userSchema = new mongoose.Schema(
     activeShopId: {
       type: mongoose.Schema.Types.ObjectId,
       default: null
-    }
+    },
   },
   {
     timestamps: true 

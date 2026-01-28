@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import AuthRoute from "./routes/auth.route.js"
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import ShopRouter from "./routes/shop.route.js";
 const app = express();
 
 
@@ -16,6 +17,7 @@ app.use(cors({
 
 
 app.use("/api/auth",AuthRoute);
+app.use("/api",ShopRouter);
 
 
 export default app;

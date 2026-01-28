@@ -26,7 +26,7 @@ theme="dark"
     <Routes>
       <Route  path='/login' element={<Login></Login>} />
       <Route  path='/Signup' element={<SignUp></SignUp>} />
-      <Route  path='/ShopDetail' element={<ShopDetailPage></ShopDetailPage>} />
+      <Route  path='/shopdetail' element={<ShopDetailPage></ShopDetailPage>} />
       
     </Routes>
     </>
