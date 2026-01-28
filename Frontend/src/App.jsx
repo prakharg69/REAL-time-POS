@@ -6,6 +6,7 @@ import React from 'react'
 import Login from './Pages/Login'
 import SignUp from './Pages/SignUp'
 import { ToastContainer } from 'react-toastify'
+import ShopDetailPage from './Pages/ShopDetailPage'
 
 function App() {
   return (
@@ -25,6 +26,8 @@ theme="dark"
     <Routes>
       <Route  path='/login' element={<Login></Login>} />
       <Route  path='/Signup' element={<SignUp></SignUp>} />
+      <Route  path='/ShopDetail' element={<ShopDetailPage></ShopDetailPage>} />
+      
     </Routes>
     </>
   )

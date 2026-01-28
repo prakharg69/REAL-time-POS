@@ -2,11 +2,21 @@ import { GoogleLogin } from "@react-oauth/google";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 function Login() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
+      const res = await axios.post(
+        "http://localhost:5001/api/auth/login",
+        {
+          idToken: credentialResponse.credential,
+        },
+        { withCredentials: true },
+      );
+      console.log(res.data);
+      
       toast.success("login done", {
         position: "top-right",
         autoClose: 5000,
@@ -17,8 +27,9 @@ function Login() {
         progress: undefined,
         theme: "dark",
       });
+
     } catch (error) {
-      toast.error(error.message,{
+      toast.error(error.message, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -44,7 +55,6 @@ function Login() {
           onError={() => console.log("Google Login Failed")}
           width="300"
         />
-
 
         <div className="flex items-center w-full my-6">
           <div className="flex-1 h-px bg-gray-200"></div>
