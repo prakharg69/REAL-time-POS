@@ -3,10 +3,10 @@ import User from "../modules/user.model.js";
 
 export const Shopcreated = async (req, res) => {
   try {
-    console.log("dataaa");
     
     const { shopName, city, businessType, category, shopSize } = req.body;
-
+    console.log(businessType);
+    
     if (!shopName || !city || !businessType || !category || !shopSize) {
       return res.status(400).json({ message: "Missing details" });
     }
@@ -58,3 +58,17 @@ export const Shopcreated = async (req, res) => {
     });
   }
 };
+
+export const getMyShop = async (req,res)=>{
+  console.log("get my shop controller entry ");
+  
+  try {
+    const userId = req.userId;
+    const shop =await Shop.findOne({ownerId:userId});
+    if(!shop) return res.status(400).json("shop not created");
+    res.status(200).json({data:shop})
+
+  } catch (error) {
+     res.status(500).json({message:"Server error",error});
+  }
+}

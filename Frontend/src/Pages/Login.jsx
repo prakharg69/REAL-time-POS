@@ -3,9 +3,12 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "../Redux/Slices/AuthSlice";
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await axios.post(
@@ -15,7 +18,7 @@ function Login() {
         },
         { withCredentials: true },
       );
-      console.log(res.data);
+      dispatch(fetchUser());
       
       toast.success("login done", {
         position: "top-right",

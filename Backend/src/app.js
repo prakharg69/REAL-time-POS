@@ -4,6 +4,7 @@ import AuthRoute from "./routes/auth.route.js"
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import ShopRouter from "./routes/shop.route.js";
+import UserRouter from "./routes/user.route.js";
 const app = express();
 
 
@@ -18,6 +19,7 @@ app.use(cors({
 
 app.use("/api/auth",AuthRoute);
 app.use("/api",ShopRouter);
+app.use("/api",UserRouter);
 
 
 export default app;

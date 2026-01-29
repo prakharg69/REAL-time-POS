@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { fetchStore } from "../Redux/Slices/StoreSlice";
+import { useNavigate } from "react-router-dom";
 
 function ShopDetailPage() {
   const [step, setStep] = useState(1);
@@ -11,6 +14,8 @@ function ShopDetailPage() {
     category: "",
     shopSize: "small",
   });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const businessOptions = [
     { id: "wholesaler", label: "Wholesaler" },
@@ -61,7 +66,9 @@ function ShopDetailPage() {
         formData,
         { withCredentials: true },
       );
-      console.log("dataaaaa ", res.data);
+      dispatch(fetchStore());
+      navigate("/dashboard");
+      
     } catch (error) {
       console.log(error);
     }
@@ -95,14 +102,14 @@ function ShopDetailPage() {
               </span>
             </div>
 
-            {/* Connecting Line Only */}
+         
             <div className="w-24 h-0.5 mx-8 bg-gray-300 relative">
               <div
                 className={`absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300 ${step >= 2 ? "w-full" : "w-0"}`}
               ></div>
             </div>
 
-            {/* Step 2 */}
+           
             <div className="relative flex flex-col items-center">
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${step >= 2 ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-300 text-gray-500"}`}

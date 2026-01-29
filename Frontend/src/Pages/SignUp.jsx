@@ -3,9 +3,12 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from "axios"
+import { fetchUser } from '../Redux/Slices/AuthSlice';
+import { useDispatch } from 'react-redux';
 
 function SignUp() {
    const navigate = useNavigate();
+   const dispatch = useDispatch();
     const handleGoogleSuccess = async (credentialResponse) => {
     try {
       console.log("Google credential:", credentialResponse);
@@ -30,7 +33,8 @@ function SignUp() {
               progress: undefined,
               theme: "dark",
             });
-      navigate("/shopDetail");
+      dispatch(fetchUser());
+      navigate("/shopdetail");
     } catch (error) {
       console.error("Google signup error:", error);
        toast.error(error.message,{

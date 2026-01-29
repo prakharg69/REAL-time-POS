@@ -20,9 +20,10 @@ const shopSchema = new mongoose.Schema(
     },
 
     businessType: {
-      type: [String],
+      type: String,
       enum: ["wholesaler", "retailer","both"],
-      required: true
+      required: true,
+      default: "retailer"
     
     },
 
