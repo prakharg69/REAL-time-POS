@@ -19,6 +19,7 @@ function Login() {
         { withCredentials: true },
       );
       dispatch(fetchUser());
+      navigate("/dashboard");
       
       toast.success("login done", {
         position: "top-right",
