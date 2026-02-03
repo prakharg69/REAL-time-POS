@@ -2,6 +2,7 @@ import User from "../modules/user.model.js";
 
 export const UserDetail = async(req,res)=>{
     try {
+         console.log("get my shop controller entry ");
         const Id = req.userId;
         const user = await User.findById(Id).select("fullName email emailVerified  profilePhoto subscriptionPlan subscriptionStatus activeShopId")
         if(!user){
