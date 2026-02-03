@@ -8,7 +8,7 @@ import SignUp from './Pages/SignUp'
 import { ToastContainer } from 'react-toastify'
 import ShopDetailPage from './Pages/ShopDetailPage'
 import { fetchUser } from './Redux/Slices/AuthSlice';
-import { fetchStore } from './Redux/Slices/StoreSlice';
+import { fetchProduct, fetchStore } from './Redux/Slices/StoreSlice';
 import DashboardRoute from './routes/DashboardRoute';
 import ShopSetupRoute from './routes/ShopSetupRoute';
 import DashboardLayout from './Pages/ DashboardLayout';
@@ -25,15 +25,20 @@ const dispatch = useDispatch();
 const {isLoggedIn,user} = useSelector((s)=> s.auth);
 useEffect(()=>{
      dispatch(fetchUser());
-     console.log("useeffect working");  
+     
+    
 },[dispatch]);
 useEffect(()=>{
     dispatch(fetchStore());
 },[user])
+useEffect(()=>{
+  console.log("fetchProduct is:", fetchProduct);
+  dispatch(fetchProduct({page:1,limit:2}));
+},[])
   return (
    <>
    <ToastContainer
-position="top-left"
+position="top-right"
 autoClose={5000}
 hideProgressBar={false}
 newestOnTop={false}
