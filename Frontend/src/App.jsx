@@ -18,12 +18,14 @@ import Scanner from './Pages/Scanner';
 import Checkout from './Pages/Checkout';
 import Inventory from './Pages/Inventory';
 import { Settings } from 'lucide-react';
+import RealTimeInventoryLanding from './Pages/RealTimeInventoryLanding';
 
 function App() {
 const dispatch = useDispatch();
 const {isLoggedIn,user} = useSelector((s)=> s.auth);
 useEffect(()=>{
      dispatch(fetchUser());
+     console.log("useeffect working");  
 },[dispatch]);
 useEffect(()=>{
     dispatch(fetchStore());
@@ -45,6 +47,7 @@ theme="dark"
     <Routes>
       <Route  path='/login' element={<Login/>} />
       <Route  path='/Signup' element={<SignUp/>} />
+        <Route path="/" element={<RealTimeInventoryLanding></RealTimeInventoryLanding>} />
       <Route  path='/shopdetail' element={<ShopSetupRoute><ShopDetailPage/></ShopSetupRoute>}/>
       <Route element={<DashboardLayout></DashboardLayout>}> 
       

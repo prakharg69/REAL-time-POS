@@ -2,7 +2,9 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../Components/Sidebar";
 
+
 export default function DashboardLayout() {
+   
   return (
     <div className="flex flex-col md:flex-row h-screen bg-blue-50 p-2 md:p-4 gap-3 md:gap-4">
       {/* Sidebar - Responsive */}

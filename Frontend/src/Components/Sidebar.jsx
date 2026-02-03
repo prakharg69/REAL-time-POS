@@ -10,7 +10,8 @@ import {
   FiUser,
   FiHome
 } from "react-icons/fi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
 export default function Sidebar() {
     const {user} = useSelector((s)=> s.auth);
@@ -158,8 +159,8 @@ export default function Sidebar() {
             <FiUser className="text-blue-500" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-blue-800">{user.fullName}</p>
-            <p className="text-xs text-blue-400">ShopName: {Store.shopName}</p>
+            <p className="text-sm font-medium text-blue-800">{user?.fullName || "guest"}</p>
+            <p className="text-xs text-blue-400">ShopName: {Store?.shopName || "guest"}</p>
           </div>
         </div>
       </div>
