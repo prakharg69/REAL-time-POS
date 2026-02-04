@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
 function Scanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannedData, setScannedData] = useState([]);
-
+  const { Store } = useSelector((s) => s.shop);
   const scannerRef = useRef(null);
   const lastScannedRef = useRef(null);
   const toastCooldownRef = useRef(false);
@@ -49,34 +51,34 @@ function Scanner() {
             height: SCANNER_SIZE,
           },
         },
-        (decodedText) => {
+        async (decodedText) => {
           try {
             const decoded = JSON.parse(decodedText);
             const { sku } = decoded;
 
             if (!sku) return;
-            if (lastScannedRef.current === sku) return;
+            if (!Store?._id) return;
 
+            if (lastScannedRef.current === sku) return;
             lastScannedRef.current = sku;
 
-            setScannedData((prev) =>
-              prev.includes(sku) ? prev : [...prev, sku]
+            await axios.post(
+              `http://localhost:5001/api/cartadd?sku=${sku}&shopId=${Store._id}`,
+              {},
+              { withCredentials: true },
             );
 
-            // 🔔 Toast cooldown
-            if (!toastCooldownRef.current) {
-              toast.success("Product added to cart");
-              toastCooldownRef.current = true;
+            toast.success("Product added to cart");
 
-              setTimeout(() => {
-                toastCooldownRef.current = false;
-              }, 800);
-            }
-          } catch {
+            
+            setTimeout(() => {
+              lastScannedRef.current = null;
+            }, 700);
+          } catch (error) {
             toast.error("Invalid QR code");
           }
         },
-        () => {}
+        () => {},
       );
     } catch (error) {
       console.error("Scanner start failed:", error);
