@@ -19,7 +19,7 @@ import Checkout from './Pages/Checkout';
 import Inventory from './Pages/Inventory';
 import { Settings } from 'lucide-react';
 import RealTimeInventoryLanding from './Pages/RealTimeInventoryLanding';
-
+import Sastaspotify from "./Pages/sastaspotify"
 function App() {
 const dispatch = useDispatch();
 const {isLoggedIn,user} = useSelector((s)=> s.auth);
@@ -67,6 +67,7 @@ theme="dark"
         <Route path="/pos/checkout" element={<Checkout />} />
            <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
+         <Route path="/spot" element={<Sastaspotify></Sastaspotify>} />
       </Route>
 
 

@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ScannerComponent from '../Components/scannercomponent'; 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import { cartUpdate } from '../Redux/Slices/StoreSlice';
+import { toast } from 'react-toastify';
 
 const CheckoutPage = () => {
-  const { cart } = useSelector((s) => s.shop);
+  const { cart ,Store} = useSelector((s) => s.shop);
   const [showScanner, setShowScanner] = useState(false);
+  const dispatch = useDispatch();
+const debounceRef = useRef(null);
 
   // For demo if cart is empty
   const [demoCart, setDemoCart] = useState({
@@ -44,25 +49,111 @@ const CheckoutPage = () => {
 
  
   const cartData = cart || demoCart;
+const syncQuantityWithBackend = (sku, quantity) => {
+  if (debounceRef.current) {
+    clearTimeout(debounceRef.current);
+  }
 
-  const handleIncrement = (sku) => {
-    console.log('Increment:', sku);
-    // Add API call here
-  };
+  debounceRef.current = setTimeout(async () => {
+    try {
+      const shopId = Store?._id;
 
-  const handleDecrement = (sku) => {
-    console.log('Decrement:', sku);
-    // Add API call here
-  };
+      await axios.post(
+        "http://localhost:5001/api/updatequantity",
+        { sku, quantity, shopId },
+        { withCredentials: true }
+      );
 
-  const handleDelete = (sku) => {
-    console.log('Delete:', sku);
-    // Add API call here
-  };
+      
+    } catch (error) {
+      toast.error("Failed to update quantity");
+      console.error(error);
+    }
+  }, 600);
+};
+
+const handleIncrement = (sku) => {
+  const item = cart.items[sku];
+  if (!item) return;
+
+  const newQuantity = item.quantity + 1;
+
+  // 1️⃣ Update Redux immediately (UI instant)
+  dispatch(
+    cartUpdate({
+      ...cart,
+      items: {
+        ...cart.items,
+        [sku]: {
+          ...item,
+          quantity: newQuantity,
+          lineTotal: newQuantity * item.price,
+        },
+      },
+      totalQuantity: cart.totalQuantity + 1,
+      totalAmount: cart.totalAmount + item.price,
+    })
+  );
+
+  
+  syncQuantityWithBackend(sku, newQuantity);
+};
+
+
+const handleDecrement = (sku) => {
+  const item = cart.items[sku];
+  if (!item || item.quantity <= 1) return;
+
+  const newQuantity = item.quantity - 1;
+
+ 
+  dispatch(
+    cartUpdate({
+      ...cart,
+      items: {
+        ...cart.items,
+        [sku]: {
+          ...item,
+          quantity: newQuantity,
+          lineTotal: newQuantity * item.price,
+        },
+      },
+      totalQuantity: cart.totalQuantity - 1,
+      totalAmount: cart.totalAmount - item.price,
+    })
+  );
+
+  
+  syncQuantityWithBackend(sku, newQuantity);
+};
+
+
+const handleDelete = async (sku) => {
+  try {
+    console.log("Delete:", sku);
+
+    const shopId = Store?._id;
+
+    const res = await axios.delete(
+      "http://localhost:5001/api/deleteproduct",
+      {
+        data: { sku, shopId },
+        withCredentials: true,
+      }
+    );
+
+    dispatch(cartUpdate(res.data.cart));
+    toast.success("Product deleted");
+  } catch (error) {
+    toast.error("Delete error");
+    console.error(error);
+  }
+};
+
 
   const handleCheckout = () => {
     console.log('Checkout initiated');
-    // Add checkout logic here
+    
   };
 
   return (

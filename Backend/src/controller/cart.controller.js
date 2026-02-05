@@ -1,3 +1,4 @@
+import { object } from "zod";
 import redisClient from "../config/redis.js";
 import Product from "../modules/Product.model.js";
 const CART_TTL = 60 * 60 * 2;
@@ -142,7 +143,6 @@ export const deleteProduct = async (req, res) => {
 
     cart = JSON.parse(cart);
 
-   
     if (!cart.items[sku]) {
       return res.status(404).json({
         success: false,
@@ -150,10 +150,86 @@ export const deleteProduct = async (req, res) => {
       });
     }
 
-   
     delete cart.items[sku];
 
+    let totalQuantity = 0;
+    let totalAmount = 0;
+
+    Object.values(cart.items).forEach((item) => {
+      totalQuantity += item.quantity;
+      totalAmount += item.lineTotal;
+    });
+
+    cart.totalQuantity = totalQuantity;
+    cart.totalAmount = totalAmount;
+
+    await redisClient.set(cartKey, JSON.stringify(cart));
+
+    return res.status(200).json({
+      success: true,
+      message: "Product removed from cart",
+      cart,
+    });
+  } catch (error) {
+    console.error("Delete cart product error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+
+export const updateQuantity = async (req, res) => {
+  try {
+    const { sku, quantity, shopId } = req.body;
+    console.log("update me agyaa ");
+    
+
    
+    if (!sku || quantity == null || !shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "sku, quantity and shopId are required",
+      });
+    }
+
+    if (quantity < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Quantity must be at least 1",
+      });
+    }
+
+   
+    const cartKey = `cart:${shopId}`;
+
+   
+    const cartData = await redisClient.get(cartKey);
+    if (!cartData) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart not found",
+      });
+    }
+
+    let cart = JSON.parse(cartData);
+
+    
+    if (!cart.items[sku]) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found in cart",
+      });
+    }
+
+   
+    cart.items[sku].quantity = quantity;
+    cart.items[sku].lineTotal =
+      quantity * cart.items[sku].price;
+
+    
     let totalQuantity = 0;
     let totalAmount = 0;
 
@@ -166,15 +242,22 @@ export const deleteProduct = async (req, res) => {
     cart.totalAmount = totalAmount;
 
     
-    await redisClient.set(cartKey, JSON.stringify(cart));
+    await redisClient.set(
+      cartKey,
+      JSON.stringify(cart),
+      "EX",
+      60 * 60 * 2
+    );
 
+    
     return res.status(200).json({
       success: true,
-      message: "Product removed from cart",
+      message: "Quantity updated",
       cart,
     });
+
   } catch (error) {
-    console.error("Delete cart product error:", error);
+    console.error("Update quantity error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",

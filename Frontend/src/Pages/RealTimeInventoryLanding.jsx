@@ -319,7 +319,7 @@ const ModernInventoryLightBlue = () => {
                   ))}
                 </div>
                 
-                <p className="text-gray-700 italic mb-6">"{review.text}"</p>
+                <p className="text-gray-700 italic mb-6 ">"{review.text}"</p>
                 
                 <div className="flex items-center pt-6 border-t border-blue-100">
                   <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">

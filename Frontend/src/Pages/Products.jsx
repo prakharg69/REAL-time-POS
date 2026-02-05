@@ -37,7 +37,7 @@ const Products = () => {
   
   useEffect(() => {
     dispatch(fetchProduct({ page: currentPage, limit: 2 }));
-  }, [dispatch, currentPage]);
+  }, [currentPage]);
 
  
   useEffect(() => {
