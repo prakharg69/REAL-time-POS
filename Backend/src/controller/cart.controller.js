@@ -1,14 +1,14 @@
 import redisClient from "../config/redis.js";
 import Product from "../modules/Product.model.js";
-const CART_TTL = 60 * 60 * 2; 
+const CART_TTL = 60 * 60 * 2;
 export const cartAdd = async (req, res) => {
   try {
     console.log("came to this api ");
 
     const sku = req.query.sku;
     const shopId = req.query.shopId;
-    console.log("sku this is :",sku);
-    
+    console.log("sku this is :", sku);
+
     if (!sku || !shopId) {
       return res
         .status(400)
@@ -55,22 +55,130 @@ export const cartAdd = async (req, res) => {
     let totalQty = 0;
     let totalAmt = 0;
 
-    Object.values(cart.items).forEach((items)=>{
-            totalQty+=items.quantity
-            totalAmt+=items.lineTotal
+    Object.values(cart.items).forEach((items) => {
+      totalQty += items.quantity;
+      totalAmt += items.lineTotal;
     });
     cart.totalAmount = totalAmt;
     cart.totalQuantity = totalQty;
 
-    await redisClient.set(cartKey ,JSON.stringify(cart),"EX", CART_TTL);
+    await redisClient.set(cartKey, JSON.stringify(cart), "EX", CART_TTL);
     return res.status(200).json({
       success: true,
       message: "Product added to cart",
-      cart
+      cart,
     });
-
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.message });
     console.log(error);
+  }
+};
+
+export const getCart = async (req, res) => {
+  try {
+    console.log("enter in get carttt");
+
+    const { shopId } = req.query;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "shopId is required",
+      });
+    }
+
+    const cartKey = `cart:${shopId}`;
+
+    const cartData = await redisClient.get(cartKey);
+
+    if (!cartData) {
+      return res.status(200).json({
+        success: true,
+        cart: {
+          shopId,
+          items: {},
+          totalQuantity: 0,
+          totalAmount: 0,
+        },
+      });
+    }
+
+    const cart = JSON.parse(cartData);
+
+    return res.status(200).json({
+      success: true,
+      cart,
+    });
+  } catch (error) {
+    console.error("Get cart error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const { sku, shopId } = req.body;
+
+    if (!sku || !shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "SKU and shopId are required",
+      });
+    }
+
+    const cartKey = `cart:${shopId}`;
+    let cart = await redisClient.get(cartKey);
+
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart not found",
+      });
+    }
+
+    cart = JSON.parse(cart);
+
+   
+    if (!cart.items[sku]) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found in cart",
+      });
+    }
+
+   
+    delete cart.items[sku];
+
+   
+    let totalQuantity = 0;
+    let totalAmount = 0;
+
+    Object.values(cart.items).forEach((item) => {
+      totalQuantity += item.quantity;
+      totalAmount += item.lineTotal;
+    });
+
+    cart.totalQuantity = totalQuantity;
+    cart.totalAmount = totalAmount;
+
+    
+    await redisClient.set(cartKey, JSON.stringify(cart));
+
+    return res.status(200).json({
+      success: true,
+      message: "Product removed from cart",
+      cart,
+    });
+  } catch (error) {
+    console.error("Delete cart product error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
   }
 };

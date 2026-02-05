@@ -8,7 +8,7 @@ import SignUp from './Pages/SignUp'
 import { ToastContainer } from 'react-toastify'
 import ShopDetailPage from './Pages/ShopDetailPage'
 import { fetchUser } from './Redux/Slices/AuthSlice';
-import { fetchProduct, fetchStore } from './Redux/Slices/StoreSlice';
+import { fetchCart, fetchProduct, fetchStore } from './Redux/Slices/StoreSlice';
 import DashboardRoute from './routes/DashboardRoute';
 import ShopSetupRoute from './routes/ShopSetupRoute';
 import DashboardLayout from './Pages/ DashboardLayout';
@@ -23,18 +23,22 @@ import RealTimeInventoryLanding from './Pages/RealTimeInventoryLanding';
 function App() {
 const dispatch = useDispatch();
 const {isLoggedIn,user} = useSelector((s)=> s.auth);
-useEffect(()=>{
-     dispatch(fetchUser());
-     
-    
-},[dispatch]);
-useEffect(()=>{
-    dispatch(fetchStore());
-},[user])
-useEffect(()=>{
-  console.log("fetchProduct is:", fetchProduct);
-  dispatch(fetchProduct({page:1,limit:2}));
-},[])
+const {Store} = useSelector((s)=> s.shop);
+
+useEffect(() => {
+  dispatch(fetchUser());
+}, [dispatch]);
+
+useEffect(() => {
+  if (!user) return;
+  dispatch(fetchStore());
+}, [user, dispatch]);
+
+useEffect(() => {
+  if (!Store?._id) return;
+  dispatch(fetchProduct({ page: 1, limit: 2 }));  
+  dispatch(fetchCart({shopId:Store._id}));
+}, [Store?._id, dispatch]);
   return (
    <>
    <ToastContainer

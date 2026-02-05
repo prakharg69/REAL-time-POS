@@ -37,6 +37,28 @@ export const fetchProduct = createAsyncThunk(
     }
   }
 );
+export const fetchCart = createAsyncThunk(
+  "Store/fetchCart",
+  async ({shopId}, { rejectWithValue}) => {
+    try {
+     
+        console.log("entered in thunk");
+        
+      const res = await api.get("/api/getcart", {
+        params: {
+          shopId
+        },
+      });
+
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Cart api error"
+      );
+    }
+  }
+);
+
 
 const initialState = {
   Store: null,
@@ -47,7 +69,14 @@ const initialState = {
   totalPages: 0,
   hasNextPage: false,
   hasPrevPage: false,
-  cart: [],
+
+  cart: {
+    shopId: null,
+    items: {},
+    totalQuantity: 0,
+    totalAmount: 0,
+  },
+
   error: {
     store: null,
     StoreItems: null,
@@ -59,6 +88,7 @@ const initialState = {
     cart: false,
   },
 };
+
 const StoreSlice = createSlice({
   name: "store",
   initialState,
@@ -69,6 +99,9 @@ const StoreSlice = createSlice({
     addItems(state, action) {
       state.StoreItems.push(action.payload);
     },
+    cartUpdate(state,action){
+      state.cart = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -107,8 +140,15 @@ const StoreSlice = createSlice({
       .addCase(fetchProduct.rejected, (state, action) => {
         console.error("REDUX ERROR:", action.payload);
         state.error.StoreItems = action.payload;
-      });
+      }).addCase(fetchCart.pending,(state)=>{
+        state.loading.cart = true;
+      }).addCase(fetchCart.fulfilled,(state,action)=>{
+        state.cart = action.payload.cart;
+        state.loading.cart = false;
+      }).addCase(fetchCart.rejected,(state,action)=>{
+        state.error.cart = action.payload;
+      })
   },
 });
-export const { setStore, addItems } = StoreSlice.actions;
+export const { setStore, addItems,cartUpdate } = StoreSlice.actions;
 export default StoreSlice.reducer;

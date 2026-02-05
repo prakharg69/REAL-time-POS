@@ -34,22 +34,22 @@ const Products = () => {
     hasPrevPage,
   } = useSelector((s) => s.shop);
 
-  // ✅ Fetch products on load & page change
+  
   useEffect(() => {
     dispatch(fetchProduct({ page: currentPage, limit: 2 }));
   }, [dispatch, currentPage]);
 
-  // ✅ Reset to page 1 on search/filter change
+ 
   useEffect(() => {
     dispatch(fetchProduct({ page: 1, limit: 2 }));
   }, [searchTerm, filterCategory]);
 
   const products = StoreItems || [];
 
-  // ✅ Categories (current page only)
+
   const categories = ["all", ...new Set(products.map((p) => p.category))];
 
-  // ✅ Client-side search/filter (page-level)
+  
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -273,7 +273,7 @@ const Products = () => {
                         
                         <td className="py-4 px-6">
                           <div className="space-y-3">
-                            {/* Quantity info at top */}
+                           
                             <div>
                               <div className="text-sm font-medium text-gray-900">
                                 {p.stockQuantity} {p.unit}
@@ -285,7 +285,7 @@ const Products = () => {
                               )}
                             </div>
                             
-                            {/* Stock status at bottom */}
+                           
                             <div className="flex items-center gap-2">
                               {stock.icon}
                               <span className={`text-xs px-2.5 py-1 rounded-full border ${stock.color}`}>
