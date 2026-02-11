@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ✅ Optional Customer Info
+    
     customerName: {
       type: String,
       trim: true,
@@ -19,7 +19,6 @@ const orderSchema = new mongoose.Schema(
     customerEmail: {
       type: String,
       trim: true,
-      lowercase: true,
       default: null,
     },
 
@@ -35,8 +34,29 @@ const orderSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "upi"],
+      enum: ["cash" ,"upi"],
       required: true,
+    },
+
+    razorpayOrderId: {
+      type: String,
+      default: null,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
+
+    razorpaySignature: {
+      type: String,
+      default: null,
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
     },
 
     status: {

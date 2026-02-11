@@ -1,71 +1,46 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema(
+const orderItemSchema = new mongoose.Schema(
   {
-    shopId: {
+    orderId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Shop",
+      ref: "Order",
       required: true,
       index: true,
     },
 
-    
-    customerName: {
-      type: String,
-      trim: true,
-      default: null,
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
     },
 
-    customerEmail: {
+    name: {
       type: String,
-      trim: true,
-      default: null,
+      required: true,
     },
 
-    totalQuantity: {
+    sku: {
+      type: String,
+      required: true,
+    },
+
+    price: {
       type: Number,
       required: true,
     },
 
-    totalAmount: {
+    quantity: {
       type: Number,
       required: true,
     },
 
-    paymentMethod: {
-      type: String,
-      enum: ["cash" ,"upi"],
+    lineTotal: {
+      type: Number,
       required: true,
-    },
-
-    razorpayOrderId: {
-      type: String,
-      default: null,
-    },
-
-    razorpayPaymentId: {
-      type: String,
-      default: null,
-    },
-
-    razorpaySignature: {
-      type: String,
-      default: null,
-    },
-
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
-      default: "pending",
-    },
-
-    status: {
-      type: String,
-      enum: ["completed", "cancelled"],
-      default: "completed",
     },
   },
-  { timestamps: true }
+  { timestamps: false }
 );
 
-export default mongoose.model("Order", orderSchema);
+export default mongoose.model("OrderItem", orderItemSchema);

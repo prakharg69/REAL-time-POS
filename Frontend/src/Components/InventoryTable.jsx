@@ -9,7 +9,7 @@ function InventoryTable() {
   );
 
   useEffect(() => {
-    dispatch(fetchInventoryLogs({ page: 1, limit: 10 }));
+    dispatch(fetchInventoryLogs({ page: 1, limit: 5 }));
   }, [dispatch]);
 
   if (loading) {
