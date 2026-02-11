@@ -18,14 +18,13 @@ const inventoryLogSchema = new mongoose.Schema(
 
     changeType: {
       type: String,
-      enum: ["initial", "sale", "restock", "adjustment", "return"],
+      enum: ["add", "remove", "adjust"],
       required: true
     },
 
     quantityChanged: {
       type: Number,
       required: true
-      // +ve for add, -ve for reduce
     },
 
     previousStock: {

@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
-import ScannerComponent from '../Components/scannercomponent'; 
+import ScannerComponent from '../Components/scannercomponent';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { cartUpdate } from '../Redux/Slices/StoreSlice';
 import { toast } from 'react-toastify';
 
 const CheckoutPage = () => {
-  const { cart ,Store} = useSelector((s) => s.shop);
+  const { cart, Store } = useSelector((s) => s.shop);
   const [showScanner, setShowScanner] = useState(false);
   const dispatch = useDispatch();
-const debounceRef = useRef(null);
+  const debounceRef = useRef(null);
 
   // For demo if cart is empty
   const [demoCart, setDemoCart] = useState({
@@ -18,7 +18,7 @@ const debounceRef = useRef(null);
       "BAN-GAR-XX5": {
         "productId": "6982265dbfa45fab911e8d9f",
         "sku": "BAN-GAR-XX5",
-        "name": "band",
+        "name": "Band",
         "price": 200,
         "unit": "piece",
         "quantity": 1,
@@ -36,7 +36,7 @@ const debounceRef = useRef(null);
       "MAG-NES-XX3": {
         "productId": "698225d3bfa45fab911e8d97",
         "sku": "MAG-NES-XX3",
-        "name": "maggie",
+        "name": "Maggie",
         "price": 14,
         "unit": "piece",
         "quantity": 4,
@@ -47,266 +47,304 @@ const debounceRef = useRef(null);
     "totalAmount": 1756
   });
 
- 
+
   const cartData = cart || demoCart;
-const syncQuantityWithBackend = (sku, quantity) => {
-  if (debounceRef.current) {
-    clearTimeout(debounceRef.current);
-  }
 
-  debounceRef.current = setTimeout(async () => {
-    try {
-      const shopId = Store?._id;
-
-      await axios.post(
-        "http://localhost:5001/api/updatequantity",
-        { sku, quantity, shopId },
-        { withCredentials: true }
-      );
-
-      
-    } catch (error) {
-      toast.error("Failed to update quantity");
-      console.error(error);
+  const syncQuantityWithBackend = (sku, quantity) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-  }, 600);
-};
 
-const handleIncrement = (sku) => {
-  const item = cart.items[sku];
-  if (!item) return;
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const shopId = Store?._id;
 
-  const newQuantity = item.quantity + 1;
-
-  // 1️⃣ Update Redux immediately (UI instant)
-  dispatch(
-    cartUpdate({
-      ...cart,
-      items: {
-        ...cart.items,
-        [sku]: {
-          ...item,
-          quantity: newQuantity,
-          lineTotal: newQuantity * item.price,
-        },
-      },
-      totalQuantity: cart.totalQuantity + 1,
-      totalAmount: cart.totalAmount + item.price,
-    })
-  );
-
-  
-  syncQuantityWithBackend(sku, newQuantity);
-};
+        await axios.post(
+          "http://localhost:5001/api/updatequantity",
+          { sku, quantity, shopId },
+          { withCredentials: true }
+        );
 
 
-const handleDecrement = (sku) => {
-  const item = cart.items[sku];
-  if (!item || item.quantity <= 1) return;
-
-  const newQuantity = item.quantity - 1;
-
- 
-  dispatch(
-    cartUpdate({
-      ...cart,
-      items: {
-        ...cart.items,
-        [sku]: {
-          ...item,
-          quantity: newQuantity,
-          lineTotal: newQuantity * item.price,
-        },
-      },
-      totalQuantity: cart.totalQuantity - 1,
-      totalAmount: cart.totalAmount - item.price,
-    })
-  );
-
-  
-  syncQuantityWithBackend(sku, newQuantity);
-};
-
-
-const handleDelete = async (sku) => {
-  try {
-    console.log("Delete:", sku);
-
-    const shopId = Store?._id;
-
-    const res = await axios.delete(
-      "http://localhost:5001/api/deleteproduct",
-      {
-        data: { sku, shopId },
-        withCredentials: true,
+      } catch (error) {
+        toast.error("Failed to update quantity");
+        console.error(error);
       }
+    }, 600);
+  };
+
+  const handleIncrement = (sku) => {
+    const item = cart.items[sku];
+    if (!item) return;
+
+    const newQuantity = item.quantity + 1;
+
+    dispatch(
+      cartUpdate({
+        ...cart,
+        items: {
+          ...cart.items,
+          [sku]: {
+            ...item,
+            quantity: newQuantity,
+            lineTotal: newQuantity * item.price,
+          },
+        },
+        totalQuantity: cart.totalQuantity + 1,
+        totalAmount: cart.totalAmount + item.price,
+      })
     );
 
-    dispatch(cartUpdate(res.data.cart));
-    toast.success("Product deleted");
-  } catch (error) {
-    toast.error("Delete error");
-    console.error(error);
-  }
-};
+
+    syncQuantityWithBackend(sku, newQuantity);
+  };
+
+
+  const handleDecrement = (sku) => {
+    const item = cart.items[sku];
+    if (!item || item.quantity <= 1) return;
+
+    const newQuantity = item.quantity - 1;
+
+
+    dispatch(
+      cartUpdate({
+        ...cart,
+        items: {
+          ...cart.items,
+          [sku]: {
+            ...item,
+            quantity: newQuantity,
+            lineTotal: newQuantity * item.price,
+          },
+        },
+        totalQuantity: cart.totalQuantity - 1,
+        totalAmount: cart.totalAmount - item.price,
+      })
+    );
+
+
+    syncQuantityWithBackend(sku, newQuantity);
+  };
+
+
+  const handleDelete = async (sku) => {
+    try {
+      console.log("Delete:", sku);
+
+      const shopId = Store?._id;
+
+      const res = await axios.delete(
+        "http://localhost:5001/api/deleteproduct",
+        {
+          data: { sku, shopId },
+          withCredentials: true,
+        }
+      );
+
+      dispatch(cartUpdate(res.data.cart));
+      toast.success("Product deleted");
+    } catch (error) {
+      toast.error("Delete error");
+      console.error(error);
+    }
+  };
 
 
   const handleCheckout = () => {
     console.log('Checkout initiated');
-    
+
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-2xl md:text-3xl font-bold text-blue-600 mb-6 text-center">Checkout</h1>
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       
-      <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
-        {/* Left Part - Cart Items */}
-        <div className="lg:w-1/2 bg-white rounded-xl shadow-lg p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-800">
-              Cart Items ({cartData.totalQuantity})
-            </h2>
+      {/* Header */}
+      <header className="bg-blue-900 text-white border-b border-blue-800">
+        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Checkout Terminal</h1>
+            <p className="text-blue-200 text-sm mt-1">
+              Store: {Store?.shopName || 'Demo Store'} <span className="mx-2 text-blue-700">|</span> ID: {Store?._id ? Store._id.substring(0, 8) + '...' : '...'}
+            </p>
+          </div>
+          <div className="hidden md:block bg-blue-800 px-4 py-1.5 rounded text-xs text-blue-100 border border-blue-700 uppercase tracking-wider font-semibold">
+            System Online
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        
+        {/* LEFT COLUMN: Cart Items (Span 7/12) */}
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          
+          {/* Mobile Scanner Toggle */}
+          <div className="lg:hidden">
             <button
               onClick={() => setShowScanner(!showScanner)}
-              className="lg:hidden bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+              className="w-full bg-blue-600 text-white font-semibold py-3.5 px-4 rounded border border-blue-700 flex items-center justify-center gap-2"
             >
-              {showScanner ? 'Hide Scanner' : 'Show Scanner'}
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+              {showScanner ? 'Close Scanner' : 'Open Scanner'}
             </button>
+            
+            {showScanner && (
+              <div className="mt-4 bg-white p-2 rounded-lg border border-blue-200 shadow-sm">
+                <ScannerComponent scannerSize={280} />
+              </div>
+            )}
           </div>
-          
-          {/* Mobile Scanner (only visible on mobile when toggled) */}
-          {showScanner && (
-            <div className="mb-6 lg:hidden bg-gray-50 p-4 rounded-lg">
-              <ScannerComponent scannerSize={250} />
-            </div>
-          )}
-          
-          <div className="space-y-4">
+
+          {/* Cart Header */}
+          <div className="flex justify-between items-center border-b-2 border-slate-200 pb-3">
+            <h2 className="text-xl font-bold text-slate-800">
+              Current Order
+              <span className="ml-3 text-sm font-normal text-slate-500">
+                ({cartData.totalQuantity} Items)
+              </span>
+            </h2>
+            <button className="text-sm text-blue-600 font-medium hover:underline">Clear All</button>
+          </div>
+
+          {/* Cart Items List */}
+          <div className="space-y-3">
             {Object.values(cartData.items).length > 0 ? (
               Object.values(cartData.items).map((item) => (
-                <div key={item.sku} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{item.name}</h3>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">SKU: {item.sku}</span>
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">Unit: {item.unit}</span>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-3 mt-3">
-                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-                          <button
-                            onClick={() => handleDecrement(item.sku)}
-                            className="text-blue-600 hover:text-blue-800 font-bold text-lg w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200"
-                            aria-label="Decrease quantity"
-                          >
-                            −
-                          </button>
-                          <span className="font-medium w-8 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => handleIncrement(item.sku)}
-                            className="text-blue-600 hover:text-blue-800 font-bold text-lg w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200"
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </button>
+                <div key={item.sku} className="bg-white rounded border border-slate-200 p-0 overflow-hidden grid grid-cols-1 sm:grid-cols-12 gap-0">
+                  
+                  {/* Item Info (Left) */}
+                  <div className="col-span-1 sm:col-span-8 p-4 border-b sm:border-b-0 sm:border-r border-slate-100 flex gap-4">
+                    <div className="w-16 h-16 bg-slate-100 rounded shrink-0 flex items-center justify-center text-slate-400 border border-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-800 truncate">{item.name}</h3>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">{item.sku}</p>
+                      <div className="mt-3 flex items-center gap-3">
+                        <div className="flex items-center border border-slate-300 rounded bg-slate-50">
+                          <button onClick={() => handleDecrement(item.sku)} className="px-2 py-1 text-slate-600 font-bold hover:bg-slate-200 border-r border-slate-300">−</button>
+                          <span className="px-3 py-1 text-sm font-semibold text-slate-700 min-w-12 text-center">{item.quantity}</span>
+                          <button onClick={() => handleIncrement(item.sku)} className="px-2 py-1 text-slate-600 font-bold hover:bg-slate-200 border-l border-slate-300">+</button>
                         </div>
-                        
-                        <button
+                        <button 
                           onClick={() => handleDelete(item.sku)}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium px-4 py-2 border border-red-200 rounded hover:bg-red-50"
+                          className="text-xs text-red-500 hover:text-red-700 font-medium border border-red-100 px-2 py-1 rounded bg-red-50"
                         >
                           Delete
                         </button>
                       </div>
                     </div>
-                    
-                    <div className="text-right min-w-[120px]">
-                      <p className="text-lg font-semibold text-blue-600">₹{item.price?.toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">each</p>
-                      <p className="text-md font-medium text-gray-800 mt-2">
-                        Line Total: ₹{item.lineTotal?.toFixed(2)}
-                      </p>
+                  </div>
+
+                  {/* Price Info (Right) */}
+                  <div className="col-span-1 sm:col-span-4 p-4 flex flex-col justify-between items-start sm:items-end bg-slate-50/50">
+                    <div className="text-right w-full">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Unit Price</p>
+                      <p className="text-sm font-semibold text-slate-700">₹{item.price?.toFixed(2)}</p>
+                    </div>
+                    <div className="text-right w-full mt-2">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Total</p>
+                      <p className="text-lg font-bold text-blue-700 font-mono">₹{item.lineTotal?.toFixed(2)}</p>
                     </div>
                   </div>
+
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                Your cart is empty. Scan products to add them.
+              <div className="bg-white rounded border border-slate-200 p-12 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-300"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </div>
+                <h3 className="text-lg font-bold text-slate-700">No Items in Cart</h3>
+                <p className="text-slate-500 mt-1">Scan a product to begin checkout.</p>
               </div>
             )}
           </div>
-          
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
-              <span className="text-xl md:text-2xl font-bold text-blue-600">
-                ₹{cartData.totalAmount?.toFixed(2) || '0.00'}
-              </span>
-            </div>
-          </div>
         </div>
-        
-        {/* Right Part - Desktop Scanner and Checkout */}
-        <div className="lg:w-1/2 space-y-6">
-          {/* Scanner (hidden on mobile, visible on desktop) */}
-          <div className="hidden lg:block bg-white rounded-xl shadow-lg p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">QR Code Scanner</h2>
-            <ScannerComponent scannerSize={350} className="justify-start" />
-          </div>
-          
-          {/* Order Summary and Checkout */}
-          <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
+
+        {/* RIGHT COLUMN: Summary & Scanner (Span 5/12) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="sticky top-6 space-y-6">
             
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">₹{cartData.totalAmount?.toFixed(2) || '0.00'}</span>
+            {/* Desktop Scanner Section */}
+            <div className="hidden lg:block bg-white rounded-lg border border-slate-200">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Scanner Input</h2>
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Items</span>
-                <span className="font-medium">{cartData.totalQuantity || 0}</span>
+              <div className="p-6 flex flex-col items-center justify-center bg-slate-100/50 relative">
+                {/* Visual Crosshairs for "Target" Feel */}
+                <div className="absolute inset-4 border-2 border-blue-100 rounded-lg pointer-events-none flex flex-col justify-between p-2">
+                  <div className="flex justify-between"><div className="w-4 h-4 border-t-4 border-l-4 border-blue-500 rounded-tl-sm"></div><div className="w-4 h-4 border-t-4 border-r-4 border-blue-500 rounded-tr-sm"></div></div>
+                  <div className="flex justify-between"><div className="w-4 h-4 border-b-4 border-l-4 border-blue-500 rounded-bl-sm"></div><div className="w-4 h-4 border-b-4 border-r-4 border-blue-500 rounded-br-sm"></div></div>
+                </div>
+                <ScannerComponent scannerSize={260} />
+              </div>
+            </div>
+
+            {/* Order Summary Section */}
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <h2 className="font-bold text-slate-800 text-lg">Payment Summary</h2>
               </div>
               
-              <div className="pt-4 border-t border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-800">Grand Total</span>
-                  <span className="text-xl md:text-2xl font-bold text-blue-600">
-                    ₹{cartData.totalAmount?.toFixed(2) || '0.00'}
-                  </span>
+              <div className="p-6 space-y-4">
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Subtotal</span>
+                  <span className="font-mono font-medium">₹{cartData.totalAmount?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Tax (0%)</span>
+                  <span className="font-mono font-medium">₹0.00</span>
+                </div>
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Discount</span>
+                  <span className="font-mono font-medium text-red-500">- ₹0.00</span>
+                </div>
+                
+                <div className="border-t border-slate-200 pt-4 mt-4">
+                  <div className="flex justify-between items-end">
+                    <span className="font-bold text-slate-800">Total Payable</span>
+                    <span className="text-3xl font-extrabold text-blue-600 font-mono tracking-tight">
+                      ₹{cartData.totalAmount?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  disabled={!cartData.totalQuantity || cartData.totalQuantity === 0}
+                  className={`w-full mt-6 font-bold text-lg py-4 px-6 rounded flex items-center justify-center gap-2
+                    ${!cartData.totalQuantity || cartData.totalQuantity === 0 
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                      : 'bg-blue-700 text-white border-b-4 border-blue-900 active:border-b-0 active:mt-1'}`}
+                >
+                  COMPLETE CHECKOUT
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                
+                {!cartData.totalQuantity && (
+                  <p className="text-center text-xs text-slate-400 mt-2">Add items to enable checkout</p>
+                )}
+              </div>
+
+              {/* Footer Badges */}
+              <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-2 text-slate-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                  <span className="text-xs font-medium">Card / UPI</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-500 justify-end">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                  <span className="text-xs font-medium">Cash Accepted</span>
                 </div>
               </div>
             </div>
-            
-            <button
-              onClick={handleCheckout}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
-              disabled={!cartData.totalQuantity || cartData.totalQuantity === 0}
-            >
-              Proceed to Checkout
-            </button>
-            
-            {(!cartData.totalQuantity || cartData.totalQuantity === 0) && (
-              <p className="text-xs text-center text-gray-500 mt-3">
-                Add items to cart to checkout
-              </p>
-            )}
-            
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h3 className="font-medium text-gray-700 mb-2">Payment Methods</h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full">Credit Card</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">Debit Card</span>
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">UPI</span>
-                <span className="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full">Cash</span>
-              </div>
-            </div>
+
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

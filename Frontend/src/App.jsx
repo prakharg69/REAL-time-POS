@@ -19,7 +19,7 @@ import Checkout from './Pages/Checkout';
 import Inventory from './Pages/Inventory';
 import { Settings } from 'lucide-react';
 import RealTimeInventoryLanding from './Pages/RealTimeInventoryLanding';
-import Sastaspotify from "./Pages/sastaspotify"
+import { fetchInventoryLogs } from './Redux/Slices/InventorySlice';
 function App() {
 const dispatch = useDispatch();
 const {isLoggedIn,user} = useSelector((s)=> s.auth);
@@ -37,6 +37,7 @@ useEffect(() => {
 useEffect(() => {
   if (!Store?._id) return;
   dispatch(fetchProduct({ page: 1, limit: 2 }));  
+  dispatch(fetchInventoryLogs({page:1,limit:5}));
   dispatch(fetchCart({shopId:Store._id}));
 }, [Store?._id, dispatch]);
   return (
@@ -67,7 +68,7 @@ theme="dark"
         <Route path="/pos/checkout" element={<Checkout />} />
            <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
-         <Route path="/spot" element={<Sastaspotify></Sastaspotify>} />
+        
       </Route>
 
 

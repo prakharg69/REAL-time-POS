@@ -8,6 +8,7 @@ import UserRouter from "./routes/user.route.js";
 import ProductRouter from "./routes/product.route.js";
 import testRoutes from "./routes/test.routes.js";
 import CartRoute from "./routes/cart.route.js";
+import inventoryRoute from "./routes/inventory.route.js";
 const app = express();
 
 
@@ -25,7 +26,8 @@ app.use("/api",ShopRouter);
 app.use("/api",UserRouter);
 app.use("/api",ProductRouter);
 app.use("/redis", testRoutes);
-app.use("/api",CartRoute)
+app.use("/api",CartRoute);
+app.use("/api",inventoryRoute);
 
 
 export default app;

@@ -201,7 +201,8 @@ export const updateQuantity = async (req, res) => {
         message: "Quantity must be at least 1",
       });
     }
-
+    const product = await Product.findOne({sku})
+    
    
     const cartKey = `cart:${shopId}`;
 
@@ -215,6 +216,11 @@ export const updateQuantity = async (req, res) => {
     }
 
     let cart = JSON.parse(cartData);
+     if(product.stockQuantity < quantity){
+        return res.status(400).json({ success: false,
+        message: "quwantity is less",cart})
+    }
+
 
     
     if (!cart.items[sku]) {
