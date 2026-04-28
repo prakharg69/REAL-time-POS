@@ -10,6 +10,7 @@ import testRoutes from "./routes/test.routes.js";
 import CartRoute from "./routes/cart.route.js";
 import inventoryRoute from "./routes/inventory.route.js";
 import orderRoute from "./routes/order.route.js";
+import statRoute from "./routes/stats.route.js";
 const app = express();
 
 
@@ -30,6 +31,7 @@ app.use("/redis", testRoutes);
 app.use("/api",CartRoute);
 app.use("/api",inventoryRoute);
 app.use("/api",orderRoute);
+app.use("/api",statRoute);
 
 
 export default app;

@@ -19,6 +19,14 @@ export const AddProduct = async (req, res) => {
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
+    const existproduct = await ProductModel.findOne({
+      name: { $regex: `^${name}$`, $options: "i" },
+      brand: { $regex: `^${brand}$`, $options: "i" },
+      shopId: shop._id,
+    });
+    if (existproduct) {
+      return res.status(400).json({ message: "product already exist " });
+    }
     const counterId = `product_${shop._id}`;
     const nextSeq = await getNextCounterValue(counterId);
     const SKU = SKUgenrator({
@@ -59,7 +67,7 @@ export const AddProduct = async (req, res) => {
 export const getProduct = async (req, res) => {
   try {
     console.log("get my product entrrry hogyaaaaaa");
-    
+
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
