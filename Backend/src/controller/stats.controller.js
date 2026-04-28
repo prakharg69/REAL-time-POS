@@ -316,3 +316,95 @@ export const topSellingProducts = async (req, res) => {
     });
   }
 };
+
+
+export const lowStockAlert = async (req, res) => {
+  try {
+    // get logged-in user
+    const user = await userModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const shopId = user.activeShopId;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    const lowStockProducts = await productModel.aggregate([
+      {
+        $match: {
+          shopId: new mongoose.Types.ObjectId(shopId),
+          isActive: true,
+        },
+      },
+
+      // stockQuantity <= minimumStock
+      {
+        $match: {
+          $expr: {
+            $lte: ["$stockQuantity", "$minimumStock"],
+          },
+        },
+      },
+
+      // add status field
+      {
+        $addFields: {
+          status: {
+            $cond: {
+              if: { $eq: ["$stockQuantity", 0] },
+              then: "Out of Stock",
+              else: "Low Stock",
+            },
+          },
+        },
+      },
+
+      // sort urgent first
+      {
+        $sort: {
+          stockQuantity: 1,
+        },
+      },
+
+      // top 10 only
+      {
+        $limit: 10,
+      },
+
+      // clean response
+      {
+        $project: {
+          _id: 0,
+          productName: "$name",
+          sku: 1,
+          currentStock: "$stockQuantity",
+          minimumStock: 1,
+          status: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: lowStockProducts,
+    });
+  } catch (error) {
+    console.log("Low Stock Alert Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
