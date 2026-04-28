@@ -1,8 +1,9 @@
 import React from 'react'
+import SalesOverview from '../Components/SalesOverview'
 
 function Dashboard() {
   return (
-    <div>Dashboard</div>
+    <div><SalesOverview></SalesOverview></div>
   )
 }
 

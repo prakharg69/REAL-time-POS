@@ -7,7 +7,6 @@ export const salesOverview = async (req, res) => {
   try {
     const { filter = "day" } = req.query;
 
-    // validate filter
     if (!["day", "month", "year"].includes(filter)) {
       return res.status(400).json({
         success: false,
@@ -93,7 +92,6 @@ export const salesOverview = async (req, res) => {
         $match: {
           "orderData.shopId": new mongoose.Types.ObjectId(shopId),
           "orderData.status": { $ne: "cancelled" },
-          "orderData.paymentStatus": "paid",
           "orderData.createdAt": {
             $gte: startDate,
             $lte: now,
@@ -123,10 +121,7 @@ export const salesOverview = async (req, res) => {
             $sum: {
               $multiply: [
                 {
-                  $subtract: [
-                    "$price",
-                    "$productData.costPrice",
-                  ],
+                  $subtract: ["$price", "$productData.costPrice"],
                 },
                 "$quantity",
               ],
@@ -151,6 +146,168 @@ export const salesOverview = async (req, res) => {
     });
   } catch (error) {
     console.log("Dashboard Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+export const topSellingProducts = async (req, res) => {
+  try {
+    const { filter = "day" } = req.query;
+
+    // validate filter
+    if (!["day", "month", "year"].includes(filter)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid filter value",
+      });
+    }
+
+    // get logged-in user
+    const user = await userModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const shopId = user.activeShopId;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    // date range builder
+    const now = new Date();
+    let startDate = new Date();
+
+    if (filter === "day") {
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    if (filter === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    if (filter === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    const topProducts = await orderItemmodel.aggregate([
+      // join with orders
+      {
+        $lookup: {
+          from: "orders",
+          localField: "orderId",
+          foreignField: "_id",
+          as: "orderData",
+        },
+      },
+
+      {
+        $unwind: "$orderData",
+      },
+
+      // filter shop + date + paid + not cancelled
+      {
+        $match: {
+          "orderData.shopId": new mongoose.Types.ObjectId(shopId),
+          "orderData.status": { $ne: "cancelled" },
+          "orderData.paymentStatus": "paid",
+          "orderData.createdAt": {
+            $gte: startDate,
+            $lte: now,
+          },
+        },
+      },
+
+      // join with products for costPrice
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "productData",
+        },
+      },
+
+      {
+        $unwind: "$productData",
+      },
+
+      // group by product
+      {
+        $group: {
+          _id: "$productId",
+
+          productName: {
+            $first: "$name",
+          },
+
+          totalQuantitySold: {
+            $sum: "$quantity",
+          },
+
+          totalRevenue: {
+            $sum: "$lineTotal",
+          },
+
+          totalProfit: {
+            $sum: {
+              $multiply: [
+                {
+                  $subtract: [
+                    "$price",
+                    "$productData.costPrice",
+                  ],
+                },
+                "$quantity",
+              ],
+            },
+          },
+        },
+      },
+
+      // sort highest selling first
+      {
+        $sort: {
+          totalQuantitySold: -1,
+        },
+      },
+
+      // top 10 only
+      {
+        $limit: 10,
+      },
+
+      // clean response
+      {
+        $project: {
+          _id: 0,
+          productName: 1,
+          totalQuantitySold: 1,
+          totalRevenue: 1,
+          totalProfit: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      filter,
+      data: topProducts,
+    });
+  } catch (error) {
+    console.log("Top Products Error:", error);
 
     return res.status(500).json({
       success: false,

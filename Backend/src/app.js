@@ -31,7 +31,6 @@ app.use("/redis", testRoutes);
 app.use("/api",CartRoute);
 app.use("/api",inventoryRoute);
 app.use("/api",orderRoute);
-app.use("/api",statRoute);
-
+app.use("/api/dashboard", statRoute);
 
 export default app;
