@@ -222,7 +222,6 @@ export const topSellingProducts = async (req, res) => {
         $match: {
           "orderData.shopId": new mongoose.Types.ObjectId(shopId),
           "orderData.status": { $ne: "cancelled" },
-          "orderData.paymentStatus": "paid",
           "orderData.createdAt": {
             $gte: startDate,
             $lte: now,
@@ -265,10 +264,7 @@ export const topSellingProducts = async (req, res) => {
             $sum: {
               $multiply: [
                 {
-                  $subtract: [
-                    "$price",
-                    "$productData.costPrice",
-                  ],
+                  $subtract: ["$price", "$productData.costPrice"],
                 },
                 "$quantity",
               ],
@@ -316,7 +312,6 @@ export const topSellingProducts = async (req, res) => {
     });
   }
 };
-
 
 export const lowStockAlert = async (req, res) => {
   try {
@@ -400,6 +395,162 @@ export const lowStockAlert = async (req, res) => {
     });
   } catch (error) {
     console.log("Low Stock Alert Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+export const SalesTrend = async (req, res) => {
+  try {
+    const { filter = "week" } = req.query;
+
+    if (!["week", "month", "year"].includes(filter)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid filter value",
+      });
+    }
+
+    const user = await userModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const shopId = user.activeShopId;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    const now = new Date();
+    let startDate = new Date();
+    let groupFormat;
+
+    // week → last 7 days
+    if (filter === "week") {
+      startDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 7
+      );
+
+      groupFormat = "%Y-%m-%d";
+    }
+
+    // month → current month day-wise
+    if (filter === "month") {
+      startDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      );
+
+      groupFormat = "%Y-%m-%d";
+    }
+
+    // year → current year month-wise
+    if (filter === "year") {
+      startDate = new Date(
+        now.getFullYear(),
+        0,
+        1
+      );
+
+      groupFormat = "%Y-%m";
+    }
+
+    const salesTrend = await orderItemmodel.aggregate([
+      {
+        $lookup: {
+          from: "orders",
+          localField: "orderId",
+          foreignField: "_id",
+          as: "orderData",
+        },
+      },
+
+      {
+        $unwind: "$orderData",
+      },
+
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "productData",
+        },
+      },
+
+      {
+        $unwind: "$productData",
+      },
+
+      {
+        $match: {
+          "orderData.shopId": new mongoose.Types.ObjectId(shopId),
+          "orderData.status": "completed",
+          "orderData.createdAt": {
+            $gte: startDate,
+            $lte: now,
+          },
+        },
+      },
+
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: groupFormat,
+              date: "$orderData.createdAt",
+            },
+          },
+
+          totalSales: {
+            $sum: "$lineTotal",
+          },
+
+          totalProfit: {
+            $sum: {
+              $multiply: [
+                {
+                  $subtract: [
+                    "$price",
+                    "$productData.costPrice",
+                  ],
+                },
+                "$quantity",
+              ],
+            },
+          },
+        },
+      },
+
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      filter,
+      data: salesTrend,
+    });
+  } catch (error) {
+    console.log("Sales Trend Error:", error);
 
     return res.status(500).json({
       success: false,
