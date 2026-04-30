@@ -37,7 +37,7 @@ const Products = () => {
   
   useEffect(() => {
     dispatch(fetchProduct({ page: currentPage, limit: 2 }));
-  }, [currentPage]);
+  }, [dispatch,currentPage]);
 
  
   useEffect(() => {
@@ -86,7 +86,7 @@ const Products = () => {
       setShowForm(false);
       dispatch(fetchProduct({ page: 1, limit: 2 }));
     } catch (error) {
-      toast.error("Failed to add product");
+      toast.error("Failed to add product",error);
     }
   };
 
@@ -96,8 +96,7 @@ const Products = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Delete this product?")) {
-      // API delete call later
-      toast.success("Product deleted");
+      toast.success(`Product deleted,${id}`);
     }
   };
 

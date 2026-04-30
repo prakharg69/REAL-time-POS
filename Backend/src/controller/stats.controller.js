@@ -297,6 +297,8 @@ export const topSellingProducts = async (req, res) => {
         },
       },
     ]);
+    console.log(topProducts);
+    
 
     return res.status(200).json({
       success: true,

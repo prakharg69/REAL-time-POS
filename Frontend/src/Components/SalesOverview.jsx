@@ -1,50 +1,29 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSalesOverview } from "../Redux/Slices/StatsSlice";
+
 
 const SalesOverview = () => {
+  const dispatch = useDispatch();
+
   const [filter, setFilter] = useState("day");
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({
-    totalSales: 0,
-    totalOrders: 0,
-    totalProductsSold: 0,
-    totalProfit: 0,
-  });
 
-  const fetchSalesOverview = async (selectedFilter = filter) => {
-    try {
-      setLoading(true);
 
-      const res = await axios.get(
-        `http://localhost:5001/api/dashboard/sales-overview?filter=${selectedFilter}`,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(res.data);
-      
+  const { data: stats, loading, error } = useSelector(
+    (state) => state.stats.salesStats
+  );
 
-      if (res.data.success) {
-        setStats(res.data.data);
-      }
-    } catch (error) {
-      console.log("Dashboard Fetch Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchSalesOverview();
-  }, []);
+    dispatch(fetchSalesOverview({ filter }));
+  }, [dispatch, filter]);
 
   const handleFilterChange = (value) => {
-    setFilter(value);
-    fetchSalesOverview(value);
+    setFilter(value); 
   };
 
   return (
-    <div className="p-6 bg-[#f5f9ff] min-h-200px">
+    <div className="p-6 bg-[#f5f9ff] min-h-50">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -73,6 +52,13 @@ const SalesOverview = () => {
           ))}
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="text-red-500 text-center mb-4">
+          {error}
+        </div>
+      )}
 
       {/* Cards */}
       {loading ? (

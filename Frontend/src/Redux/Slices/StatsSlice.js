@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
-
 export const fetchSalesOverview = createAsyncThunk(
   "stats/fetchSalesOverview",
   async ({ filter = "day" } = {}, { rejectWithValue }) => {
@@ -10,15 +9,34 @@ export const fetchSalesOverview = createAsyncThunk(
         params: { filter },
       });
 
-      return res.data; 
+      return res.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "SalesOverview API error"
+          "SalesOverview API error",
       );
     }
-  }
+  },
+);
+
+export const fetchTopSellingProducts = createAsyncThunk(
+  "stats/fetchTopSellingProducts",
+  async ({ filter = "day" } = {}, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/dashboard/top-selling-products", {
+        params: { filter },
+      });
+
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "fetchTopSellingProducts API error",
+      );
+    }
+  },
 );
 
 const initialState = {
@@ -52,7 +70,7 @@ const initialState = {
   },
 
   topProducts: {
-    filter: "week",
+    filter: "day",
     data: [],
     loading: false,
     error: null,
@@ -70,7 +88,6 @@ const statsSlice = createSlice({
   initialState,
 
   reducers: {
-    
     setSalesStats(state, action) {
       state.salesStats.data = action.payload;
     },
@@ -79,7 +96,6 @@ const statsSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-     
       .addCase(fetchSalesOverview.pending, (state) => {
         state.salesStats.loading = true;
         state.salesStats.error = null;
@@ -93,6 +109,21 @@ const statsSlice = createSlice({
       .addCase(fetchSalesOverview.rejected, (state, action) => {
         state.salesStats.loading = false;
         state.salesStats.error = action.payload;
+      })
+      .addCase(fetchTopSellingProducts.pending, (state) => {
+        state.topProducts.loading = true;
+        state.topProducts.error = null;
+      })
+
+      .addCase(fetchTopSellingProducts.fulfilled, (state, action) => {
+        state.topProducts.loading = false;
+        state.topProducts.data = action.payload.data;
+        state.topProducts.filter = action.payload.filter;
+      })
+
+      .addCase(fetchTopSellingProducts.rejected, (state, action) => {
+        state.topProducts.loading = false;
+        state.topProducts.error = action.payload;
       });
   },
 });
