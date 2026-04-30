@@ -22,7 +22,7 @@ import RealTimeInventoryLanding from './Pages/RealTimeInventoryLanding';
 import { fetchInventoryLogs } from './Redux/Slices/InventorySlice';
 function App() {
 const dispatch = useDispatch();
-const {isLoggedIn,user} = useSelector((s)=> s.auth);
+const {user} = useSelector((s)=> s.auth);
 const {Store} = useSelector((s)=> s.shop);
 
 useEffect(() => {

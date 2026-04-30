@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { cartUpdate, fetchCart } from "../Redux/Slices/StoreSlice";
+import { cartUpdate,  } from "../Redux/Slices/StoreSlice";
 
 function ScannerComponent({ scannerSize = 300, showButton = true, className = ""}) {
   const [isScanning, setIsScanning] = useState(false);
@@ -14,15 +14,7 @@ function ScannerComponent({ scannerSize = 300, showButton = true, className = ""
   const lastScannedRef = useRef(null);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    scannerRef.current = new Html5Qrcode("qr-reader");
-
-    return () => {
-      stopScanner();
-    };
-  }, []);
-
-  const stopScanner = async () => {
+    const stopScanner = async () => {
     if (
       scannerRef.current &&
       scannerRef.current.getState &&
@@ -34,6 +26,14 @@ function ScannerComponent({ scannerSize = 300, showButton = true, className = ""
     setIsScanning(false);
     lastScannedRef.current = null;
   };
+  useEffect(() => {
+    scannerRef.current = new Html5Qrcode("qr-reader");
+
+    return () => {
+      stopScanner();
+    };
+  }, []);
+
 
   const startScanner = async () => {
     if (!scannerRef.current) return;
@@ -75,7 +75,7 @@ function ScannerComponent({ scannerSize = 300, showButton = true, className = ""
             }, 700);
 
           } catch (error) {
-            toast.error("Invalid QR code");
+            toast.error("Invalid QR code",error);
           }
         },
         () => {},

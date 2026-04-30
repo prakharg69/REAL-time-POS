@@ -5,62 +5,86 @@ import { getNextCounterValue } from "../utils/getNextCounterValue.js";
 import { generateQRCode } from "../utils/QrCodeGenrator.js";
 import { SKUgenrator } from "../utils/SKUgenrator.js";
 import { addProductSchema } from "../Validators/productvalidator.js";
+import statsModel from "../modules/stats.model.js";
 
 export const AddProduct = async (req, res) => {
   try {
-    console.log("addproduct me agyaaa");
-    console.log(req.body);
-
     const { name, brand } = req.body;
 
-    const addProduct = addProductSchema.parse(req.body);
+    const parsedProduct = addProductSchema.parse(req.body);
 
     const shop = await Shop.findOne({ ownerId: req.userId });
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
-    const existproduct = await ProductModel.findOne({
+
+    const existProduct = await ProductModel.findOne({
       name: { $regex: `^${name}$`, $options: "i" },
       brand: { $regex: `^${brand}$`, $options: "i" },
       shopId: shop._id,
     });
-    if (existproduct) {
-      return res.status(400).json({ message: "product already exist " });
+
+    if (existProduct) {
+      return res.status(400).json({ message: "product already exist" });
     }
+
     const counterId = `product_${shop._id}`;
     const nextSeq = await getNextCounterValue(counterId);
+
     const SKU = SKUgenrator({
       name,
       brand,
       nextSeq,
     });
-    console.log("SKU:", SKU);
 
-    addProduct.sku = SKU;
-    const qrcode = await generateQRCode(SKU);
-    console.log("qrcode:", qrcode);
+    parsedProduct.sku = SKU;
 
-    addProduct.qrCode = qrcode;
-    console.log(addProduct);
+    const qrCode = await generateQRCode(SKU);
+    parsedProduct.qrCode = qrCode;
 
-    const adddProduct = await ProductModel.create({
-      ...addProduct,
+    const newProduct = await ProductModel.create({
+      ...parsedProduct,
       shopId: shop._id,
     });
-    res.status(200).json({ data: adddProduct });
+
+    // 🔥 Update DashboardStats (FAST, no aggregation)
+    await statsModel.updateOne(
+      { shopId: shop._id },
+      {
+        $inc: {
+          totalProducts: 1,
+          totalActive: parsedProduct.isActive ? 1 : 0,
+          totalOutOfStock: parsedProduct.stockQuantity === 0 ? 1 : 0,
+          totalLowStock:
+            parsedProduct.stockQuantity > 0 &&
+            parsedProduct.stockQuantity <= parsedProduct.minimumStock
+              ? 1
+              : 0,
+        },
+      },
+      { upsert: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: newProduct,
+    });
   } catch (error) {
     if (error instanceof ZodError) {
-      const issues = error.issues || [];
-
       return res.status(400).json({
         success: false,
-        errors: issues.map((err) => ({
+        errors: error.issues.map((err) => ({
           field: err.path.join("."),
           message: err.message,
         })),
       });
     }
-    res.status(500).json({ message: "server error", error });
+
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+      error: error.message,
+    });
   }
 };
 
@@ -86,7 +110,7 @@ export const getProduct = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-
+    
     res.status(200).json({
       data: products,
       pagination: {

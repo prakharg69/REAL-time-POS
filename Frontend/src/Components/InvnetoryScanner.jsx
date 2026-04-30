@@ -13,17 +13,7 @@ function InventoryScanner({
   const scannerRef = useRef(null);
   const lastScannedRef = useRef(null);
 
-  
-  useEffect(() => {
-    scannerRef.current = new Html5Qrcode("qr-reader");
-
-    return () => {
-      stopScanner();
-    };
    
-  }, []);
-
- 
   const stopScanner = async () => {
     try {
       if (
@@ -40,6 +30,17 @@ function InventoryScanner({
     setIsScanning(false);
     lastScannedRef.current = null;
   };
+  
+  useEffect(() => {
+    scannerRef.current = new Html5Qrcode("qr-reader");
+
+    return () => {
+      stopScanner();
+    };
+   
+  }, []);
+
+
 
   
   const startScanner = async () => {

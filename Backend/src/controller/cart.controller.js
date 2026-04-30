@@ -77,7 +77,7 @@ export const cartAdd = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    console.log("enter in get carttt");
+    console.log("enter in get cart");
 
     const { shopId } = req.query;
 
