@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import ordermodel from "../modules/ordermodel.js";
 import userModel from "../modules/user.model.js";
 import orderItemmodel from "../modules/orderItemmodel.js";
+import ProductModel from "../modules/Product.model.js";
 
 export const salesOverview = async (req, res) => {
   try {
@@ -442,7 +443,7 @@ export const SalesTrend = async (req, res) => {
       startDate = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() - 7
+        now.getDate() - 7,
       );
 
       groupFormat = "%Y-%m-%d";
@@ -450,22 +451,14 @@ export const SalesTrend = async (req, res) => {
 
     // month → current month day-wise
     if (filter === "month") {
-      startDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-      );
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
 
       groupFormat = "%Y-%m-%d";
     }
 
     // year → current year month-wise
     if (filter === "year") {
-      startDate = new Date(
-        now.getFullYear(),
-        0,
-        1
-      );
+      startDate = new Date(now.getFullYear(), 0, 1);
 
       groupFormat = "%Y-%m";
     }
@@ -525,10 +518,7 @@ export const SalesTrend = async (req, res) => {
             $sum: {
               $multiply: [
                 {
-                  $subtract: [
-                    "$price",
-                    "$productData.costPrice",
-                  ],
+                  $subtract: ["$price", "$productData.costPrice"],
                 },
                 "$quantity",
               ],
@@ -551,6 +541,92 @@ export const SalesTrend = async (req, res) => {
     });
   } catch (error) {
     console.log("Sales Trend Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+export const productPerformance = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const shopId = user.activeShopId;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    const InventoryStats = await ProductModel.aggregate([
+      {
+        $match: {
+          shopId: new mongoose.Types.ObjectId(shopId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+
+          totalProducts: {
+            $sum: 1,
+          },
+
+          totalActive: {
+            $sum: {
+              $cond: [{ $eq: ["$isActive", true] }, 1, 0],
+            },
+          },
+
+          totalOutOfStock: {
+            $sum: {
+              $cond: [{ $eq: ["$stockQuantity", 0] }, 1, 0],
+            },
+          },
+
+          totalLowStock: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $lte: ["$stockQuantity", "$minimumStock"] },
+                    { $gt: ["$stockQuantity", 0] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const stats = InventoryStats[0] || {
+      totalProducts: 0,
+      totalActive: 0,
+      totalOutOfStock: 0,
+      totalLowStock: 0,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.log("productPerformance Error:", error);
 
     return res.status(500).json({
       success: false,

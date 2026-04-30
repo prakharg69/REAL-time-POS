@@ -6,7 +6,7 @@ export const UserDetail = async(req,res)=>{
         const Id = req.userId;
         const user = await User.findById(Id).select("fullName email emailVerified  profilePhoto subscriptionPlan subscriptionStatus activeShopId")
         if(!user){
-            return res.status(400).json({messgae:"user not found"});
+            return res.status(400).json({message:"user not found"});
         }
          res.status(200).json({data:user});
           

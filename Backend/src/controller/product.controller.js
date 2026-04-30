@@ -86,6 +86,7 @@ export const getProduct = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
+
     res.status(200).json({
       data: products,
       pagination: {
