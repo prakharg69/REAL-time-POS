@@ -38,6 +38,21 @@ export const fetchTopSellingProducts = createAsyncThunk(
     }
   },
 );
+export const fetchSalesTrend = createAsyncThunk("stats/fetchSalesTrend",async({filter="week"}={},{rejectWithValue})=>{
+    try {
+        const res = await api.get("/api/dashboard/top-selling-products", {
+        params: { filter },
+      });
+
+      return res.data;
+    } catch (error) {
+        return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "fetchSalesTrend API error",
+      );
+    }
+})
 
 const initialState = {
   salesStats: {
@@ -124,6 +139,21 @@ const statsSlice = createSlice({
       .addCase(fetchTopSellingProducts.rejected, (state, action) => {
         state.topProducts.loading = false;
         state.topProducts.error = action.payload;
+      })
+       .addCase(fetchSalesTrend.pending, (state) => {
+        state.salesTrend.loading = true;
+        state.salesTrend.error = null;
+      })
+
+      .addCase(fetchSalesTrend.fulfilled, (state, action) => {
+        state.salesTrend.loading = false;
+        state.salesTrend.data = action.payload.data;
+        state.salesTrend.filter = action.payload.filter;
+      })
+
+      .addCase(fetchSalesTrend.rejected, (state, action) => {
+        state.salesTrend.loading = false;
+        state.salesTrend.error = action.payload;
       });
   },
 });
