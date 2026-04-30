@@ -1,56 +1,101 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../api/axios";
+
+
+export const fetchSalesOverview = createAsyncThunk(
+  "stats/fetchSalesOverview",
+  async ({ filter = "day" } = {}, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/dashboard/sales-overview", {
+        params: { filter },
+      });
+
+      return res.data; 
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "SalesOverview API error"
+      );
+    }
+  }
+);
 
 const initialState = {
-  // 🔹 Precomputed (from DashboardStats)
-  stats: {
-    totalSales: 0,
-    totalOrders: 0,
-    totalProductsSold: 0,
-    totalProfit: 0,
-
-    totalProducts: 0,
-    totalActive: 0,
-    totalOutOfStock: 0,
-    totalLowStock: 0,
-  },
-
-  // 🔹 Dynamic analytics (aggregation APIs)
-
-  // Sales Trend (graph)
-  salesTrend: {
-    filter: "week", // week | month | year
-    data: [],       // [{ _id: "2026-04-30", totalSales: 1000, totalProfit: 200 }]
+  salesStats: {
+    data: {
+      totalSales: 0,
+      totalOrders: 0,
+      totalProductsSold: 0,
+      totalProfit: 0,
+    },
     loading: false,
     error: null,
   },
 
-  // Top Selling Products
+  inventoryStats: {
+    data: {
+      totalProducts: 0,
+      totalActive: 0,
+      totalOutOfStock: 0,
+      totalLowStock: 0,
+    },
+    loading: false,
+    error: null,
+  },
+
+  salesTrend: {
+    filter: "week",
+    data: [],
+    loading: false,
+    error: null,
+  },
+
   topProducts: {
     filter: "week",
-    data: [], // [{ productId, name, quantitySold, revenue, profit }]
+    data: [],
     loading: false,
     error: null,
   },
 
-  // Low Stock Alerts (list view)
   lowStock: {
-    data: [], // [{ productId, name, stockQuantity, minimumStock }]
+    data: [],
     loading: false,
     error: null,
   },
-
-  // 🔹 UI/Global states
-  loading: false,
-  error: null,
 };
 
-const statSlice = createSlice({
-    name:"stat",
-    initialState,
-    reducers:{
-        setStats(state,action){
-                state.totalSales = action.payload;
-        }
-    }
-})
-export default  statSlice.reducer;
+const statsSlice = createSlice({
+  name: "stats",
+  initialState,
+
+  reducers: {
+    
+    setSalesStats(state, action) {
+      state.salesStats.data = action.payload;
+    },
+  },
+
+  extraReducers: (builder) => {
+    builder
+
+     
+      .addCase(fetchSalesOverview.pending, (state) => {
+        state.salesStats.loading = true;
+        state.salesStats.error = null;
+      })
+
+      .addCase(fetchSalesOverview.fulfilled, (state, action) => {
+        state.salesStats.loading = false;
+        state.salesStats.data = action.payload.data;
+      })
+
+      .addCase(fetchSalesOverview.rejected, (state, action) => {
+        state.salesStats.loading = false;
+        state.salesStats.error = action.payload;
+      });
+  },
+});
+
+export const { setSalesStats } = statsSlice.actions;
+export default statsSlice.reducer;

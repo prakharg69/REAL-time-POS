@@ -9,5 +9,6 @@ export const store = configureStore({
             shop:shopReducer,
             inventory:inventoryReducer,
             stats:statsReducer
-    }
+    },
+    devTools:true
 })
