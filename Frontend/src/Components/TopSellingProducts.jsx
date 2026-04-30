@@ -1,39 +1,24 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTopSellingProducts } from "../redux/slices/statsSlice";
 
 const TopSellingProducts = () => {
+  const dispatch = useDispatch();
+
   const [filter, setFilter] = useState("day");
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState([]);
 
-  const fetchTopProducts = async (selectedFilter = filter) => {
-    try {
-      setLoading(true);
+  // ✅ Get data from Redux
+  const { data: products, loading, error } = useSelector(
+    (state) => state.stats.topProducts
+  );
 
-      const res = await axios.get(
-        `http://localhost:5001/api/dashboard/top-selling-products?filter=${selectedFilter}`,
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (res.data.success) {
-        setProducts(res.data.data);
-      }
-    } catch (error) {
-      console.log("Top Products Fetch Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ✅ API call via Redux
   useEffect(() => {
-    fetchTopProducts();
-  }, []);
+    dispatch(fetchTopSellingProducts({ filter }));
+  }, [dispatch, filter]);
 
   const handleFilterChange = (value) => {
-    setFilter(value);
-    fetchTopProducts(value);
+    setFilter(value); // ✅ only state change
   };
 
   return (
@@ -66,6 +51,13 @@ const TopSellingProducts = () => {
           ))}
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="text-red-500 text-center mb-4">
+          {error}
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">

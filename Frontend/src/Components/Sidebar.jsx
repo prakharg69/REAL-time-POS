@@ -10,8 +10,7 @@ import {
   FiUser,
   FiHome
 } from "react-icons/fi";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import {  useSelector } from "react-redux";
 
 export default function Sidebar() {
     const {user} = useSelector((s)=> s.auth);
