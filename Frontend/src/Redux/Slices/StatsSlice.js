@@ -56,7 +56,7 @@ export const fetchSalesTrend = createAsyncThunk("stats/fetchSalesTrend",async({f
 
 export const fetchLowStockAlert = createAsyncThunk("stats/fetchLowStockAlert",async(_,{rejectWithValue})=>{
   try {
-      const res = await api.get("/api/low-stock-alert");
+      const res = await api.get("/api/dashboard/low-stock-alert");
       return res.data;
   } catch (error) {
     return rejectWithValue(

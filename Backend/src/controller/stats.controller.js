@@ -316,6 +316,8 @@ export const topSellingProducts = async (req, res) => {
 };
 
 export const lowStockAlert = async (req, res) => {
+  console.log("entry in low stock me hai ");
+  
   try {
     // get logged-in user
     const user = await userModel.findById(req.userId);
@@ -336,7 +338,7 @@ export const lowStockAlert = async (req, res) => {
       });
     }
 
-    const lowStockProducts = await productModel.aggregate([
+    const lowStockProducts = await ProductModel.aggregate([
       {
         $match: {
           shopId: new mongoose.Types.ObjectId(shopId),
@@ -390,6 +392,8 @@ export const lowStockAlert = async (req, res) => {
         },
       },
     ]);
+    console.log(lowStockProducts);
+    
 
     return res.status(200).json({
       success: true,
