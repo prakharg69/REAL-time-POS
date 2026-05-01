@@ -139,7 +139,6 @@ export const salesOverview = async (req, res) => {
       totalProfit: itemStats[0]?.totalProfit || 0,
     };
 
-    
     return res.status(200).json({
       success: true,
       filter,
@@ -283,7 +282,7 @@ export const topSellingProducts = async (req, res) => {
 
       // top 10 only
       {
-        $limit:5,
+        $limit: 5,
       },
 
       // clean response
@@ -297,7 +296,6 @@ export const topSellingProducts = async (req, res) => {
         },
       },
     ]);
-    
 
     return res.status(200).json({
       success: true,
@@ -317,7 +315,7 @@ export const topSellingProducts = async (req, res) => {
 
 export const lowStockAlert = async (req, res) => {
   console.log("entry in low stock me hai ");
-  
+
   try {
     // get logged-in user
     const user = await userModel.findById(req.userId);
@@ -393,7 +391,6 @@ export const lowStockAlert = async (req, res) => {
       },
     ]);
     console.log(lowStockProducts);
-    
 
     return res.status(200).json({
       success: true,
@@ -458,36 +455,20 @@ export const SalesTrend = async (req, res) => {
         0,
         0,
         0,
-        0
+        0,
       );
       groupFormat = "%Y-%m-%d";
     }
 
     // month → from 1st of month
     if (filter === "month") {
-      startDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1,
-        0,
-        0,
-        0,
-        0
-      );
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
       groupFormat = "%Y-%m-%d";
     }
 
     // year → from Jan 1
     if (filter === "year") {
-      startDate = new Date(
-        now.getFullYear(),
-        0,
-        1,
-        0,
-        0,
-        0,
-        0
-      );
+      startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
       groupFormat = "%Y-%m";
     }
 
@@ -644,13 +625,91 @@ export const productPerformance = async (req, res) => {
       totalLowStock: 0,
     };
     console.log(stats);
-    
+
     return res.status(200).json({
       success: true,
       data: stats,
     });
   } catch (error) {
     console.log("productPerformance Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+export const categoryPerformance = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const shopId = user.activeShopId;
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    const data = await orderItemmodel.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "productData",
+        },
+      },
+      {
+        $unwind: "$productData",
+      },
+      {
+        $match: {
+          "productData.shopId": new mongoose.Types.ObjectId(shopId),
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $ifNull: ["$productData.category", "Uncategorized"],
+          },
+          totalSales: { $sum: "$lineTotal" },
+        },
+      },
+      {
+        $sort: { totalSales: -1 },
+      },
+    ]);
+
+    // ✅ Calculate total
+    const total = data.reduce((sum, item) => sum + item.totalSales, 0);
+
+    // ✅ Add percentage
+    const result = data.map((item) => ({
+      category: item._id,
+      totalSales: item.totalSales,
+      percentage:
+        total > 0
+          ? Number(((item.totalSales / total) * 100).toFixed(1))
+          : 0,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+
+  } catch (error) {
+    console.log("categoryPerformance Error:", error);
 
     return res.status(500).json({
       success: false,
