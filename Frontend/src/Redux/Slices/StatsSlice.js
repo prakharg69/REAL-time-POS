@@ -54,6 +54,19 @@ export const fetchSalesTrend = createAsyncThunk("stats/fetchSalesTrend",async({f
     }
 })
 
+export const fetchLowStockAlert = createAsyncThunk("stats/fetchLowStockAlert",async(_,{rejectWithValue})=>{
+  try {
+      const res = await api.get("/api/low-stock-alert");
+      return res.data;
+  } catch (error) {
+    return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "fetchLowStockAlert API error",
+      );
+  }
+})
+
 const initialState = {
   salesStats: {
     data: {
@@ -154,7 +167,22 @@ const statsSlice = createSlice({
       .addCase(fetchSalesTrend.rejected, (state, action) => {
         state.salesTrend.loading = false;
         state.salesTrend.error = action.payload;
-      });
+      })
+       .addCase(fetchLowStockAlert.pending, (state) => {
+        state.lowStock.loading = true;
+        state.lowStock.error = null;
+      })
+
+      .addCase(fetchLowStockAlert.fulfilled, (state, action) => {
+        state.lowStock.loading = false;
+        state.lowStock.data = action.payload.data;
+        
+      })
+
+      .addCase(fetchLowStockAlert.rejected, (state, action) => {
+        state.lowStock.loading = false;
+        state.lowStock.error = action.payload;
+      })
   },
 });
 
