@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   LineChart,
   Line,
@@ -11,6 +10,30 @@ import {
   CartesianGrid,
 } from "recharts";
 import { fetchSalesTrend } from "../Redux/Slices/StatsSlice";
+
+// Custom Tooltip
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-lg border border-slate-700">
+        <p className="text-xs text-slate-300 font-medium mb-2">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2 text-sm font-bold">
+            <span 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: entry.color }}
+            ></span>
+            <span className="capitalize">
+              {entry.name === "totalSales" ? "Sales" : "Profit"}: 
+            </span>
+            <span>₹ {entry.value.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 const SalesTrend = () => {
   const dispatch = useDispatch();
@@ -42,80 +65,115 @@ const SalesTrend = () => {
   }, [data, filter]);
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-sm border">
+    <div className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-[#0f172a]">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             Sales Trend
           </h2>
-          <p className="text-gray-400 text-xs">
+          <p className="text-slate-500 mt-1 text-base font-medium">
             Sales & Profit over time
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-1">
+        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200 w-fit">
           {["week", "month", "year"].map((item) => (
             <button
               key={item}
               onClick={() => setFilter(item)}
-              className={`px-2 py-0.5 rounded-md text-xs font-medium ${
+              className={`px-4 py-1.5 rounded-xl text-xs md:text-sm font-bold uppercase tracking-wide transition-all duration-200 ${
                 filter === item
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
               }`}
             >
-              {item.toUpperCase()}
+              {item}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Legend */}
+      <div className="flex items-center gap-6 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+          <span className="text-xs font-bold text-slate-700 uppercase">Sales</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+          <span className="text-xs font-bold text-slate-700 uppercase">Profit</span>
+        </div>
+      </div>
+
       {/* Error */}
       {error && (
-        <div className="text-red-500 text-xs text-center mb-2">
+        <div className="p-4 mb-4 text-center text-red-600 bg-red-50 rounded-xl border border-red-100 font-semibold">
           {error}
         </div>
       )}
 
-      {/* Chart */}
+      {/* Chart Area - Reduced Height */}
       {loading ? (
-        <div className="text-center py-6 text-sm">Loading...</div>
+        <div className="h-[250px] flex items-center justify-center">
+          <div className="text-blue-600 text-lg font-bold animate-pulse">
+            Loading chart data...
+          </div>
+        </div>
       ) : formattedData.length === 0 ? (
-        <div className="text-center py-6 text-gray-400 text-sm">
-          No data
+        <div className="h-[250px] flex items-center justify-center">
+          <div className="text-slate-400 text-lg font-semibold">
+            No data available
+          </div>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={240}>
-          <LineChart
-            data={formattedData}
-            margin={{ top: 10, right: 20, left: 0, bottom: 10 }} // ✅ spacing fix
-          >
-            <CartesianGrid strokeDasharray="2 2" />
+        <div className="w-full h-[250px] -ml-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={formattedData}
+              margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="4 4" 
+                vertical={false} 
+                stroke="#e2e8f0" 
+              />
 
-            <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 10 }} />
+              <XAxis 
+                dataKey="label" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 11, fill: '#64748b' }}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 11, fill: '#64748b' }}
+              />
 
-            <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
 
-            <Line
-              type="monotone"
-              dataKey="totalSales"
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot={false}
-            />
+              <Line
+                type="monotone"
+                dataKey="totalSales"
+                stroke="#2563eb"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 4, stroke: "#fff", strokeWidth: 2 }}
+              />
 
-            <Line
-              type="monotone"
-              dataKey="totalProfit"
-              stroke="#16a34a"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+              <Line
+                type="monotone"
+                dataKey="totalProfit"
+                stroke="#10b981"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 4, stroke: "#fff", strokeWidth: 2 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );
