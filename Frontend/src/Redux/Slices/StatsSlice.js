@@ -87,6 +87,21 @@ export const fetchProductPerformance = createAsyncThunk(
     }
   },
 );
+export const fetchCategoryPerformance = createAsyncThunk(
+  "stats/fetchProductPerformance",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/dashboard/category-performance");
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "fetchLowStockAlert API error",
+      );
+    }
+  },
+);
 
 const initialState = {
   salesStats: {
@@ -126,6 +141,11 @@ const initialState = {
   },
 
   lowStock: {
+    data: [],
+    loading: false,
+    error: null,
+  },
+  categoryStats: {
     data: [],
     loading: false,
     error: null,
@@ -215,6 +235,19 @@ const statsSlice = createSlice({
       .addCase(fetchProductPerformance.rejected, (state, action) => {
         state.inventoryStats.loading = false;
         state.inventoryStats.error = action.payload;
+      })
+      .addCase(fetchCategoryPerformance.pending, (state) => {
+        state.categoryStats.loading = true;
+        state.categoryStats.error = null;
+      })
+
+      .addCase(fetchCategoryPerformance.fulfilled, (state, action) => {
+        state.categoryStats.loading = false;
+        state.categoryStats.data = action.payload.data;
+      })
+      .addCase(fetchCategoryPerformance.rejected, (state, action) => {
+        state.categoryStats.loading = false;
+        state.categoryStats.error = action.payload;
       });
   },
 });
