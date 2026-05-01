@@ -56,7 +56,6 @@ export const salesOverview = async (req, res) => {
         $match: {
           shopId: new mongoose.Types.ObjectId(shopId),
           status: { $ne: "cancelled" },
-          paymentStatus: "paid",
           createdAt: {
             $gte: startDate,
             $lte: now,
@@ -140,6 +139,7 @@ export const salesOverview = async (req, res) => {
       totalProfit: itemStats[0]?.totalProfit || 0,
     };
 
+    
     return res.status(200).json({
       success: true,
       filter,
@@ -283,7 +283,7 @@ export const topSellingProducts = async (req, res) => {
 
       // top 10 only
       {
-        $limit: 10,
+        $limit:5,
       },
 
       // clean response
@@ -297,7 +297,6 @@ export const topSellingProducts = async (req, res) => {
         },
       },
     ]);
-    console.log(topProducts);
     
 
     return res.status(200).json({
@@ -376,7 +375,7 @@ export const lowStockAlert = async (req, res) => {
 
       // top 10 only
       {
-        $limit: 10,
+        $limit: 5,
       },
 
       // clean response
@@ -411,6 +410,7 @@ export const SalesTrend = async (req, res) => {
   try {
     const { filter = "week" } = req.query;
 
+    // ✅ Validate filter
     if (!["week", "month", "year"].includes(filter)) {
       return res.status(400).json({
         success: false,
@@ -418,8 +418,8 @@ export const SalesTrend = async (req, res) => {
       });
     }
 
+    // ✅ Get user
     const user = await userModel.findById(req.userId);
-
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -428,7 +428,6 @@ export const SalesTrend = async (req, res) => {
     }
 
     const shopId = user.activeShopId;
-
     if (!shopId) {
       return res.status(400).json({
         success: false,
@@ -436,36 +435,60 @@ export const SalesTrend = async (req, res) => {
       });
     }
 
+    // ✅ Date setup
     const now = new Date();
-    let startDate = new Date();
+    let startDate;
     let groupFormat;
+
+    // 👉 Tomorrow (IMPORTANT FIX)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
 
     // week → last 7 days
     if (filter === "week") {
       startDate = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() - 7,
+        now.getDate() - 6, // include today
+        0,
+        0,
+        0,
+        0
       );
-
       groupFormat = "%Y-%m-%d";
     }
 
-    // month → current month day-wise
+    // month → from 1st of month
     if (filter === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-
+      startDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0
+      );
       groupFormat = "%Y-%m-%d";
     }
 
-    // year → current year month-wise
+    // year → from Jan 1
     if (filter === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
-
+      startDate = new Date(
+        now.getFullYear(),
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      );
       groupFormat = "%Y-%m";
     }
 
     const salesTrend = await orderItemmodel.aggregate([
+      // 🔗 Join orders
       {
         $lookup: {
           from: "orders",
@@ -474,11 +497,9 @@ export const SalesTrend = async (req, res) => {
           as: "orderData",
         },
       },
+      { $unwind: "$orderData" },
 
-      {
-        $unwind: "$orderData",
-      },
-
+      // 🔗 Join products
       {
         $lookup: {
           from: "products",
@@ -487,35 +508,33 @@ export const SalesTrend = async (req, res) => {
           as: "productData",
         },
       },
+      { $unwind: "$productData" },
 
-      {
-        $unwind: "$productData",
-      },
-
+      // ✅ Filter data
       {
         $match: {
           "orderData.shopId": new mongoose.Types.ObjectId(shopId),
           "orderData.status": "completed",
           "orderData.createdAt": {
             $gte: startDate,
-            $lte: now,
+            $lt: tomorrow, // ✅ FIXED
           },
         },
       },
 
+      // ✅ Grouping
       {
         $group: {
           _id: {
             $dateToString: {
               format: groupFormat,
               date: "$orderData.createdAt",
+              timezone: "Asia/Kolkata", // ✅ IMPORTANT
             },
           },
-
           totalSales: {
             $sum: "$lineTotal",
           },
-
           totalProfit: {
             $sum: {
               $multiply: [
@@ -529,10 +548,9 @@ export const SalesTrend = async (req, res) => {
         },
       },
 
+      // ✅ Sort ascending (timeline)
       {
-        $sort: {
-          _id: 1,
-        },
+        $sort: { _id: 1 },
       },
     ]);
 
@@ -542,7 +560,7 @@ export const SalesTrend = async (req, res) => {
       data: salesTrend,
     });
   } catch (error) {
-    console.log("Sales Trend Error:", error);
+    console.error("Sales Trend Error:", error);
 
     return res.status(500).json({
       success: false,
@@ -551,7 +569,6 @@ export const SalesTrend = async (req, res) => {
     });
   }
 };
-
 export const productPerformance = async (req, res) => {
   try {
     const user = await userModel.findById(req.userId);

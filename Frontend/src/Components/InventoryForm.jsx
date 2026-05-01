@@ -25,7 +25,7 @@ function InventoryForm({ product }) {
         );
         setProductData(res.data.product);
       } catch (error) {
-        toast.error("Failed to fetch product details");
+        toast.error(`Failed to fetch product details${error}`);
       } finally {
         setLoading(false);
       }
@@ -97,7 +97,7 @@ function InventoryForm({ product }) {
       dispatch(fetchInventoryLogs({ page: 1, limit: 5 }));
       setProductData(null);
     } catch (error) {
-      toast.error("Failed to update inventory");
+      toast.error(`Failed to update inventory ${error}`);
     } finally {
       setLoading(false);
     }
@@ -230,8 +230,8 @@ function InventoryForm({ product }) {
             </div>
             <div>
               <p className="text-xs text-gray-500">Change</p>
-              <p className={`font-medium ${qtyNum > 0 ? "text-green-600" : qtyNum < 0 ? "text-red-600" : "text-gray-900"}`}>
-                {changeType === "adjust" ? "→" : qtyNum > 0 ? `+${qtyNum}` : qtyNum}
+              <p className={`font-medium ${qtyNum > 0 && changeType==="add" ? "text-green-600" : changeType==="remove"? "text-red-600" : "text-gray-900"}`}>
+                {changeType === "adjust" ? "→" : qtyNum > 0 && changeType==="add" ? `+${qtyNum}` : changeType==="remove" ? `-${qtyNum}`:qtyNum}
               </p>
             </div>
             <div>

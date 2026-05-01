@@ -40,7 +40,7 @@ export const fetchTopSellingProducts = createAsyncThunk(
 );
 export const fetchSalesTrend = createAsyncThunk("stats/fetchSalesTrend",async({filter="week"}={},{rejectWithValue})=>{
     try {
-        const res = await api.get("/api/dashboard/top-selling-products", {
+        const res = await api.get("/api/dashboard/sales-trend", {
         params: { filter },
       });
 
