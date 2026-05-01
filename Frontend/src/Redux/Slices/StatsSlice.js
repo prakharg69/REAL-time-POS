@@ -38,34 +38,55 @@ export const fetchTopSellingProducts = createAsyncThunk(
     }
   },
 );
-export const fetchSalesTrend = createAsyncThunk("stats/fetchSalesTrend",async({filter="week"}={},{rejectWithValue})=>{
+export const fetchSalesTrend = createAsyncThunk(
+  "stats/fetchSalesTrend",
+  async ({ filter = "week" } = {}, { rejectWithValue }) => {
     try {
-        const res = await api.get("/api/dashboard/sales-trend", {
+      const res = await api.get("/api/dashboard/sales-trend", {
         params: { filter },
       });
 
       return res.data;
     } catch (error) {
-        return rejectWithValue(
+      return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
           "fetchSalesTrend API error",
       );
     }
-})
+  },
+);
 
-export const fetchLowStockAlert = createAsyncThunk("stats/fetchLowStockAlert",async(_,{rejectWithValue})=>{
-  try {
+export const fetchLowStockAlert = createAsyncThunk(
+  "stats/fetchLowStockAlert",
+  async (_, { rejectWithValue }) => {
+    try {
       const res = await api.get("/api/dashboard/low-stock-alert");
       return res.data;
-  } catch (error) {
-    return rejectWithValue(
+    } catch (error) {
+      return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
           "fetchLowStockAlert API error",
       );
-  }
-})
+    }
+  },
+);
+export const fetchProductPerformance = createAsyncThunk(
+  "stats/fetchProductPerformance",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/dashboard/product-performance");
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "fetchLowStockAlert API error",
+      );
+    }
+  },
+);
 
 const initialState = {
   salesStats: {
@@ -153,7 +174,7 @@ const statsSlice = createSlice({
         state.topProducts.loading = false;
         state.topProducts.error = action.payload;
       })
-       .addCase(fetchSalesTrend.pending, (state) => {
+      .addCase(fetchSalesTrend.pending, (state) => {
         state.salesTrend.loading = true;
         state.salesTrend.error = null;
       })
@@ -168,7 +189,7 @@ const statsSlice = createSlice({
         state.salesTrend.loading = false;
         state.salesTrend.error = action.payload;
       })
-       .addCase(fetchLowStockAlert.pending, (state) => {
+      .addCase(fetchLowStockAlert.pending, (state) => {
         state.lowStock.loading = true;
         state.lowStock.error = null;
       })
@@ -176,13 +197,25 @@ const statsSlice = createSlice({
       .addCase(fetchLowStockAlert.fulfilled, (state, action) => {
         state.lowStock.loading = false;
         state.lowStock.data = action.payload.data;
-        
       })
 
       .addCase(fetchLowStockAlert.rejected, (state, action) => {
         state.lowStock.loading = false;
         state.lowStock.error = action.payload;
       })
+      .addCase(fetchProductPerformance.pending, (state) => {
+        state.inventoryStats.loading = true;
+        state.inventoryStats.error = null;
+      })
+
+      .addCase(fetchProductPerformance.fulfilled, (state, action) => {
+        state.inventoryStats.loading = false;
+        state.inventoryStats.data = action.payload.data;
+      })
+      .addCase(fetchProductPerformance.rejected, (state, action) => {
+        state.inventoryStats.loading = false;
+        state.inventoryStats.error = action.payload;
+      });
   },
 });
 
