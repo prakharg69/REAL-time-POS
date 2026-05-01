@@ -13,6 +13,6 @@ statRoute.get("/sales-overview", Protected, salesOverview);
 statRoute.get("/top-selling-products", Protected, topSellingProducts);
 statRoute.get("/low-stock-alert", Protected, lowStockAlert);
 statRoute.get("/sales-trend", Protected, SalesTrend);
-statRoute.get("product-performance",Protected,productPerformance);
+statRoute.get("/product-performance",Protected,productPerformance);
 
 export default statRoute;

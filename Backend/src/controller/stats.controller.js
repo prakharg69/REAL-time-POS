@@ -643,7 +643,8 @@ export const productPerformance = async (req, res) => {
       totalOutOfStock: 0,
       totalLowStock: 0,
     };
-
+    console.log(stats);
+    
     return res.status(200).json({
       success: true,
       data: stats,
