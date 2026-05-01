@@ -88,7 +88,7 @@ export const fetchProductPerformance = createAsyncThunk(
   },
 );
 export const fetchCategoryPerformance = createAsyncThunk(
-  "stats/fetchProductPerformance",
+  "stats/fetchCategoryPerformance",
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get("/api/dashboard/category-performance");

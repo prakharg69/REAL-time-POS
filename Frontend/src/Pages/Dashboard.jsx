@@ -4,6 +4,7 @@ import TopSellingProducts from '../Components/TopSellingProducts'
 import SalesTrend from '../Components/SalesTrend'
 import LowStockAlert from '../Components/LowStockAlert'
 import InventoryStats from '../Components/InventoryStats'
+import CategoryPerformance from '../Components/CategoryPerformance'
 
 function Dashboard() {
   return (
@@ -12,6 +13,7 @@ function Dashboard() {
     <TopSellingProducts></TopSellingProducts>
     <LowStockAlert></LowStockAlert>
     <InventoryStats></InventoryStats>
+    <CategoryPerformance></CategoryPerformance>
     
     </div>
   )
