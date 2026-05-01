@@ -1,6 +1,7 @@
 import express from "express";
 import { Protected } from "../middleware/Protected.js";
 import {
+  categoryPerformance,
   lowStockAlert,
   productPerformance,
   salesOverview,
@@ -14,5 +15,6 @@ statRoute.get("/top-selling-products", Protected, topSellingProducts);
 statRoute.get("/low-stock-alert", Protected, lowStockAlert);
 statRoute.get("/sales-trend", Protected, SalesTrend);
 statRoute.get("/product-performance",Protected,productPerformance);
+statRoute.get("/category-performance",Protected,categoryPerformance);
 
 export default statRoute;
