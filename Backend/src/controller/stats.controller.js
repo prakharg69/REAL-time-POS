@@ -282,7 +282,7 @@ export const topSellingProducts = async (req, res) => {
 
       // top 10 only
       {
-        $limit: 5,
+        $limit: 6,
       },
 
       // clean response

@@ -19,7 +19,7 @@ const TopSellingProducts = () => {
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
         
         {/* Header - Reduced padding */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
           <div className="min-w-max">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Top Selling Products
@@ -63,7 +63,7 @@ const TopSellingProducts = () => {
             </div>
           </div>
         ) : products.length === 0 ? (
-          <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-semibold">
+          <div className="flex items-center justify-center h-70 text-slate-400 text-sm font-semibold">
             No products found
           </div>
         ) : (
@@ -93,7 +93,7 @@ const TopSellingProducts = () => {
                     className="group hover:bg-blue-50/50 transition-colors duration-200"
                   >
                     {/* Product Name */}
-                    <td className="px-5 py-3">
+                    <td className="px-6 py-3">
                       <div className="font-bold text-slate-800 text-sm whitespace-nowrap">
                         {product.productName}
                       </div>
