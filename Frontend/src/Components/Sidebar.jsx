@@ -8,13 +8,19 @@ import {
   FiGrid,
   FiCreditCard,
   FiUser,
-  FiHome
+  FiHome,
+  FiLogOut
 } from "react-icons/fi";
+
 import {  useSelector } from "react-redux";
 
 export default function Sidebar() {
     const {user} = useSelector((s)=> s.auth);
     const {Store} = useSelector((s)=> s.shop);
+
+    const handleLogout = ()=>{
+
+    }
   return (
     <div className="w-full h-full bg-white p-6 rounded-xl shadow-sm flex flex-col">
       {/* Logo/Brand */}
@@ -153,16 +159,31 @@ export default function Sidebar() {
 
       {/* User Profile - Now positioned properly within flex container */}
       <div className="pt-4 mt-4 border-t border-blue-100">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <FiUser className="text-blue-500" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-blue-800">{user?.fullName || "guest"}</p>
-            <p className="text-xs text-blue-400">ShopName: {Store?.shopName || "guest"}</p>
-          </div>
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <FiUser className="text-blue-500" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-blue-800">
+            {user?.fullName || "guest"}
+          </p>
+          <p className="text-xs text-blue-400">
+            ShopName: {Store?.shopName || "guest"}
+          </p>
         </div>
       </div>
+
+      {/* 🔥 Improved Logout Button */}
+      <button
+  onClick={handleLogout}
+  className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 rounded-lg cursor-pointer 
+  bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 
+  text-sm font-semibold tracking-wide shadow-sm hover:shadow"
+>
+  <FiLogOut className="text-lg" />
+  Logout
+</button>
+    </div>
     </div>
   );
 }

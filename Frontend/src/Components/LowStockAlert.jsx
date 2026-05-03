@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchLowStockAlert } from "../Redux/Slices/StatsSlice";
 
-// Sub-component: Compact Circular Progress Indicator
+// Sub-component: Compact Circular Progress Indicator (Smallest)
 const StockCircle = ({ current, min }) => {
   const percentage = Math.min(100, Math.max(0, (current / min) * 100));
   
-  // Reduced radius for smaller height
-  const radius = 16; 
+  // Smallest radius for compact look
+  const radius = 15; 
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
   
@@ -16,11 +16,11 @@ const StockCircle = ({ current, min }) => {
   if (current >= min) strokeColor = "#10b981"; // Green
 
   return (
-    <div className="relative w-10 h-10 flex-shrink-0">
-      <svg width="40" height="40" className="transform -rotate-90">
-        <circle cx="20" cy="20" r={radius} stroke="#e2e8f0" strokeWidth="4" fill="none" />
+    <div className="relative w-9 h-9 flex-shrink-0">
+      <svg width="36" height="36" className="transform -rotate-90">
+        <circle cx="18" cy="18" r={radius} stroke="#e2e8f0" strokeWidth="4" fill="none" />
         <circle
-          cx="20" cy="20" r={radius} stroke={strokeColor} strokeWidth="4" fill="none"
+          cx="18" cy="18" r={radius} stroke={strokeColor} strokeWidth="4" fill="none"
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           className="transition-all duration-700 ease-out"
         />
@@ -44,11 +44,11 @@ const LowStockAlert = () => {
   }, [dispatch]);
 
   return (
-    <div className="w-full p-5 bg-slate-50">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+    <div className="w-full p-4 bg-slate-50">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
         
-        {/* Header - Compact */}
-        <div className="flex items-center justify-between mb-5">
+        {/* Header - Minimal Spacing */}
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Low Stock Alerts
@@ -61,12 +61,12 @@ const LowStockAlert = () => {
 
         {/* Error State */}
         {error && (
-          <div className="p-3 mb-5 text-center text-red-600 bg-red-50 rounded-xl border border-red-100 font-semibold text-xs">
+          <div className="p-3 mb-4 text-center text-red-600 bg-red-50 rounded-lg border border-red-100 font-semibold text-xs">
             {error}
           </div>
         )}
 
-        {/* Content */}
+        {/* Content - Compact Spacing */}
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <div className="text-blue-600 text-sm font-bold animate-pulse">
@@ -78,11 +78,11 @@ const LowStockAlert = () => {
             Stock levels healthy
           </div>
         ) : (
-          <div className="space-y-2.5 max-h-[450px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
             {products.map((item, index) => (
               <div
                 key={index}
-                className="group relative flex items-center justify-between p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="group relative flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 
                 {/* Left Accent Border */}
@@ -96,7 +96,7 @@ const LowStockAlert = () => {
                 <div className="flex items-center gap-3 pl-3 flex-1">
                     {/* Smaller Colored Icon */}
                     <div 
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${
                             item.status === "Out of Stock" ? "bg-red-50 text-red-500" : "bg-orange-50 text-orange-500"
                         }`}
                     >
@@ -106,7 +106,7 @@ const LowStockAlert = () => {
                     </div>
 
                     <div className="min-w-0">
-                        <h3 className="text-base font-bold text-slate-900 truncate leading-tight">
+                        <h3 className="text-sm font-bold text-slate-900 truncate leading-tight">
                             {item.productName}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
@@ -114,7 +114,7 @@ const LowStockAlert = () => {
                                 SKU: {item.sku}
                             </p>
                             <span 
-                                className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shadow-sm border ${
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shadow-sm border ${
                                     item.status === "Out of Stock"
                                         ? "bg-white text-red-700 border-red-100"
                                         : "bg-white text-orange-700 border-orange-100"
