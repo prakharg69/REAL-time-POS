@@ -1,5 +1,5 @@
 // Sidebar.jsx
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { 
   FiPackage, 
   FiShoppingCart, 
@@ -13,13 +13,24 @@ import {
 } from "react-icons/fi";
 
 import {  useSelector } from "react-redux";
+import axios from "axios";
 
 export default function Sidebar() {
     const {user} = useSelector((s)=> s.auth);
     const {Store} = useSelector((s)=> s.shop);
+      const navigate = useNavigate();
 
-    const handleLogout = ()=>{
+    const handleLogout = async()=>{
+try {
+      await axios.get(
+        "http://localhost:5001/api/auth/logout",
+        { withCredentials: true } 
+      );
+      navigate("/login", { replace: true });
 
+    } catch (error) {
+      console.error("Logout failed:", error.response?.data || error.message);
+    }
     }
   return (
     <div className="w-full h-full bg-white p-6 rounded-xl shadow-sm flex flex-col">
